@@ -34,7 +34,7 @@ def test_failure_output_carries_a_repair_line_and_the_commit_sequence(monkeypatc
     assert check_verification.main(["--base", "HEAD~1"]) == 1
 
     err = capsys.readouterr().err
-    assert "skills/foo: VERIFICATION.md is missing" in err
+    assert f"{Path('skills/foo')}: VERIFICATION.md is missing" in err
     assert "repair: regenerate with python3" in err
     # The report-only follow-up rule is the part a contributor cannot guess.
     assert "exactly {VERIFICATION.md}" in err
