@@ -6,6 +6,18 @@ to semantic versioning where practical.
 
 ## [Unreleased]
 
+### Added
+- **Installed-skill lifecycle in `skill_registry.py`**: `install` now records what
+  landed where in `~/.agent-skills/installed.json` (override with `$AGENT_SKILLS_HOME`),
+  and new commands act on that record — `installed`, `update [--check]`, `enable`,
+  `disable`, `uninstall`, `trash`, `restore`, `purge`. `disable` moves a skill out of
+  the tool's skills directory into `~/.agent-skills/disabled/` rather than renaming it
+  in place, so no tool half-loads it. `uninstall` and registry `remove` move files to
+  `~/.agent-skills/trash/` with a 30-day default TTL instead of deleting. Every
+  lifecycle command and `install`/`list` accept `--tag <tag>` (and `--all` where it
+  applies) for bulk operations. Library hygiene borrowed from Skills Hub; the governed
+  `team_marketplace.py` path is unchanged.
+
 ### Migration
 - Skills created before this capability remain valid. A missing `semantic_contract`
   is interpreted as `{"applies": false}` with a migration warning. Add the explicit

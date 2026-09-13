@@ -14,6 +14,21 @@ Usage:
     python3 scripts/skill_registry.py install  <skill-name> [--registry PATH] [--platform PLATFORM] [--project] [--force] [--json]
     python3 scripts/skill_registry.py info     <skill-name> [--registry PATH] [--json]
     python3 scripts/skill_registry.py remove   <skill-name> [--registry PATH] [--force]
+    python3 scripts/skill_registry.py stale    [--registry PATH] [--json]
+
+Installed-skill lifecycle (tracked in ~/.agent-skills/installed.json, or
+$AGENT_SKILLS_HOME):
+    python3 scripts/skill_registry.py installed [--tag TAG] [--platform PLATFORM] [--json]
+    python3 scripts/skill_registry.py update    [<skill-name> | --all | --tag TAG] [--check] [--json]
+    python3 scripts/skill_registry.py enable    [<skill-name> | --all | --tag TAG] [--platform PLATFORM]
+    python3 scripts/skill_registry.py disable   [<skill-name> | --all | --tag TAG] [--platform PLATFORM]
+    python3 scripts/skill_registry.py uninstall [<skill-name> | --all | --tag TAG] [--platform PLATFORM] [--force]
+    python3 scripts/skill_registry.py trash     [--json]
+    python3 scripts/skill_registry.py restore   <skill-name> [--force]
+    python3 scripts/skill_registry.py purge     [--older-than DAYS]
+
+`uninstall` and `remove` move files to the recycle bin instead of deleting;
+`purge` empties items older than 30 days.
 
 Exit codes:
     0 - Success
@@ -39,6 +54,7 @@ from skill_document import SkillDoc  # noqa: E402
 from security_scan import security_scan  # noqa: E402
 from review_staleness import DEFAULT_REVIEW_INTERVAL_DAYS, classify_staleness  # noqa: E402
 from platforms import PLATFORMS, list_supported_platforms, project_paths, user_paths  # noqa: E402
+import installed_skills as ledger  # noqa: E402
 
 
 # --- Constants ---
@@ -524,12 +540,13 @@ def cmd_list(args: argparse.Namespace) -> None:
     """List all skills in the registry."""
     registry_path = Path(args.registry).resolve()
     data = load_registry(registry_path)
+    skills = _filter_by_tag(data["skills"], getattr(args, "tag", None))
 
     if getattr(args, "json", False):
-        print(json.dumps(data["skills"], indent=2))
+        print(json.dumps(skills, indent=2))
         return
 
-    print(_format_table(data["skills"]))
+    print(_format_table(skills))
 
 
 def cmd_search(args: argparse.Namespace) -> None:
@@ -561,30 +578,24 @@ def cmd_search(args: argparse.Namespace) -> None:
     print(_format_table(matches))
 
 
-def cmd_install(args: argparse.Namespace) -> None:
-    """Install a skill from the registry."""
-    registry_path = Path(args.registry).resolve()
-    data = load_registry(registry_path)
-
-    # Find skill (disambiguating by author when the name is shared)
-    skill_entry, error = resolve_skill_entry(data, args.skill_name, getattr(args, "author", None))
-    if skill_entry is None:
-        print(f"Error: {error}", file=sys.stderr)
-        sys.exit(1)
-
-    # Resolve platform
-    platform = args.platform or detect_platform()
+def _resolve_platform(requested: str | None) -> str:
+    platform = requested or detect_platform()
     if platform not in ALL_PLATFORMS:
         print(f"Error: unknown platform '{platform}'", file=sys.stderr)
         print(f"Supported: {', '.join(ALL_PLATFORMS)}", file=sys.stderr)
         sys.exit(1)
+    return platform
 
-    # Resolve target path
-    project = getattr(args, "project", False)
-    target = resolve_install_path(args.skill_name, platform, project)
+
+def _install_entry(
+    registry_path: Path, skill_entry: dict, platform: str, project: bool, force: bool,
+) -> dict:
+    """Copy one registry skill into its platform path and record it in the ledger."""
+    name = skill_entry["name"]
+    target = resolve_install_path(name, platform, project)
 
     # Check if already installed
-    if target.exists() and not args.force:
+    if target.exists() and not force:
         print(f"Error: skill already installed at {target}", file=sys.stderr)
         print("Use --force to overwrite.", file=sys.stderr)
         sys.exit(1)
@@ -606,18 +617,61 @@ def cmd_install(args: argparse.Namespace) -> None:
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(source, target, ignore=COPY_IGNORE_PATTERNS)
 
+    # A reinstall over a disabled skill lands enabled; drop the stale parking spot.
+    previous = ledger.forget(str(target))
+    if previous is not None and not previous.get("enabled", True):
+        shutil.rmtree(previous.get("parked_path", ""), ignore_errors=True)
+
+    record = ledger.make_entry(
+        name=name,
+        author=skill_entry.get("author", ""),
+        version=skill_entry.get("version", ""),
+        platform=platform,
+        scope="project" if project else "user",
+        path=target,
+        registry=registry_path,
+        tags=skill_entry.get("tags", []),
+    )
+    ledger.record_install(record)
+    return record
+
+
+def cmd_install(args: argparse.Namespace) -> None:
+    """Install a skill (or every skill carrying a tag) from the registry."""
+    registry_path = Path(args.registry).resolve()
+    data = load_registry(registry_path)
+    platform = _resolve_platform(args.platform)
+    project = getattr(args, "project", False)
+    tag = getattr(args, "tag", None)
+
+    if tag is not None:
+        entries = _filter_by_tag(data["skills"], tag)
+        if not entries:
+            print(f"Error: no registry skills carry tag '{tag}'.", file=sys.stderr)
+            sys.exit(1)
+    else:
+        # Find skill (disambiguating by author when the name is shared)
+        skill_entry, error = resolve_skill_entry(data, args.skill_name, getattr(args, "author", None))
+        if skill_entry is None:
+            print(f"Error: {error}", file=sys.stderr)
+            sys.exit(1)
+        entries = [skill_entry]
+
+    records = [_install_entry(registry_path, e, platform, project, args.force) for e in entries]
+
     if getattr(args, "json", False):
-        print(json.dumps({
-            "installed": True,
-            "skill": args.skill_name,
-            "platform": platform,
-            "path": str(target),
+        print(json.dumps([
+            {"installed": True, "skill": r["name"], "platform": platform, "path": r["path"]}
+            for r in records
+        ] if tag is not None else {
+            "installed": True, "skill": records[0]["name"], "platform": platform, "path": records[0]["path"],
         }, indent=2))
         return
 
     scope = "project" if project else "user"
-    print(f"Installed '{args.skill_name}' for {platform} ({scope}-level).")
-    print(f"  Path: {target}")
+    for record in records:
+        print(f"Installed '{record['name']}' v{record['version']} for {platform} ({scope}-level).")
+        print(f"  Path: {record['path']}")
 
     # Platform-specific activation tips
     tips = {
@@ -687,20 +741,28 @@ def cmd_remove(args: argparse.Namespace) -> None:
         print(f"Remove '{args.skill_name}' from registry? Use --force to confirm.", file=sys.stderr)
         sys.exit(1)
 
-    # Remove files
-    skill_dir = registry_path / skill_entry["path"]
-    if skill_dir.exists():
-        shutil.rmtree(skill_dir)
-
     # Remove only the resolved author's entries for this name (all versions).
     target_author = skill_entry.get("author", "")
-    data["skills"] = [
+    removed = [
         s for s in data["skills"]
-        if not (s["name"] == args.skill_name and s.get("author", "") == target_author)
+        if s["name"] == args.skill_name and s.get("author", "") == target_author
     ]
+    data["skills"] = [s for s in data["skills"] if s not in removed]
+
+    # Files go to the recycle bin, with the entries needed to put them back.
+    skill_dir = registry_path / skill_entry["path"]
+    item = None
+    if skill_dir.exists():
+        item = ledger.move_to_trash(
+            skill_dir,
+            {"name": args.skill_name, "registry": str(registry_path), "entries": removed},
+            kind="registry",
+        )
     save_registry(registry_path, data)
 
     print(f"Removed '{args.skill_name}' from registry.")
+    if item is not None:
+        print(f"  Recycle bin: {item} (restore with 'skill_registry.py restore {args.skill_name}')")
 
 
 def cmd_stale(args: argparse.Namespace) -> None:
@@ -787,6 +849,254 @@ def cmd_stale(args: argparse.Namespace) -> None:
         print(f"\nSummary: {overdue} overdue, {due_soon} due soon, {len(results)} total")
 
 
+# --- Installed-skill lifecycle ---
+
+def _filter_by_tag(entries: list[dict], tag: str | None) -> list[dict]:
+    if tag is None:
+        return entries
+    return [e for e in entries if tag in e.get("tags", [])]
+
+
+def _select_installed(args: argparse.Namespace, *, verb: str) -> list[dict]:
+    """Resolve the ledger entries a lifecycle command should act on.
+
+    Exactly one of ``skill_name``, ``--tag``, ``--all`` selects; ``--platform``
+    narrows. Exits with a message when the selection is empty or ambiguous.
+    """
+    name = getattr(args, "skill_name", None)
+    tag = getattr(args, "tag", None)
+    everything = getattr(args, "all", False)
+    selectors = sum(x is not None and x is not False for x in (name, tag, everything))
+    if selectors != 1:
+        print(f"Error: {verb} needs exactly one of <skill-name>, --tag, or --all.", file=sys.stderr)
+        sys.exit(1)
+
+    entries = ledger.select(
+        ledger.load_ledger()["skills"],
+        name=name, tag=tag, platform=getattr(args, "platform", None),
+    )
+    if not entries:
+        if name is not None:
+            print(f"Error: '{name}' is not recorded as installed.", file=sys.stderr)
+            print("Run 'skill_registry.py installed' to see what is.", file=sys.stderr)
+        elif tag is not None:
+            print(f"Error: no installed skills carry tag '{tag}'.", file=sys.stderr)
+        else:
+            print("No installed skills recorded.", file=sys.stderr)
+        sys.exit(1)
+    return entries
+
+
+def _format_installed(entries: list[dict]) -> str:
+    if not entries:
+        return "No installed skills recorded."
+    headers = ["NAME", "VERSION", "PLATFORM", "SCOPE", "STATE", "PATH"]
+    rows = [[
+        e.get("name", ""), e.get("version", ""), e.get("platform", ""), e.get("scope", ""),
+        "enabled" if e.get("enabled", True) else "disabled", e.get("path", ""),
+    ] for e in entries]
+    widths = [len(h) for h in headers]
+    for row in rows:
+        for i, cell in enumerate(row):
+            widths[i] = max(widths[i], len(cell))
+    lines = ["  ".join(h.ljust(widths[i]) for i, h in enumerate(headers))]
+    lines.extend("  ".join(cell.ljust(widths[i]) for i, cell in enumerate(row)) for row in rows)
+    return "\n".join(lines)
+
+
+def cmd_installed(args: argparse.Namespace) -> None:
+    """List skills recorded as installed on this machine."""
+    entries = ledger.select(
+        ledger.load_ledger()["skills"],
+        tag=getattr(args, "tag", None), platform=getattr(args, "platform", None),
+    )
+    if getattr(args, "json", False):
+        print(json.dumps(entries, indent=2))
+        return
+    print(_format_installed(entries))
+
+
+def _registry_version(entry: dict) -> tuple[dict | None, str | None]:
+    """Look up the registry entry an installed skill came from."""
+    registry_path = Path(entry.get("registry", ""))
+    if not (registry_path / "registry.json").exists():
+        return None, f"registry not found at {registry_path}"
+    data = load_registry(registry_path)
+    skill_entry, error = resolve_skill_entry(data, entry["name"], entry.get("author") or None)
+    if skill_entry is None:
+        return None, error
+    return skill_entry, None
+
+
+def cmd_update(args: argparse.Namespace) -> None:
+    """Reinstall installed skills whose registry version has moved on."""
+    entries = _select_installed(args, verb="update")
+    results: list[dict] = []
+    for entry in entries:
+        skill_entry, error = _registry_version(entry)
+        result = {
+            "name": entry["name"], "platform": entry["platform"], "path": entry["path"],
+            "installed": entry.get("version", ""), "available": None, "status": "",
+        }
+        if skill_entry is None:
+            result["status"] = f"error: {error}"
+        else:
+            result["available"] = skill_entry.get("version", "")
+            if result["available"] == result["installed"] and not args.force:
+                result["status"] = "current"
+            elif args.check:
+                result["status"] = "outdated"
+            else:
+                # _install_entry discards a parked copy; re-park the new one so
+                # an update never silently re-enables a disabled skill.
+                record = _install_entry(
+                    Path(entry["registry"]), skill_entry, entry["platform"],
+                    entry["scope"] == "project", force=True,
+                )
+                if not entry.get("enabled", True):
+                    ledger.disable(record)
+                result["status"] = "updated"
+        results.append(result)
+
+    if getattr(args, "json", False):
+        print(json.dumps(results, indent=2))
+    else:
+        for r in results:
+            available = r["available"] if r["available"] is not None else "?"
+            print(f"{r['status']:<9} {r['name']} ({r['platform']}) {r['installed']} -> {available}")
+
+    if args.check and any(r["status"] == "outdated" for r in results):
+        sys.exit(2)
+    if any(r["status"].startswith("error") for r in results):
+        sys.exit(1)
+
+
+def _toggle(args: argparse.Namespace, *, enable: bool) -> None:
+    verb = "enable" if enable else "disable"
+    entries = _select_installed(args, verb=verb)
+    changed: list[dict] = []
+    for entry in entries:
+        if entry.get("enabled", True) == enable:
+            continue
+        try:
+            changed.append(ledger.enable(entry) if enable else ledger.disable(entry))
+        except FileNotFoundError as exc:
+            print(f"Error: {exc}", file=sys.stderr)
+            sys.exit(1)
+    if getattr(args, "json", False):
+        print(json.dumps(changed, indent=2))
+        return
+    if not changed:
+        print(f"Nothing to {verb}: already {verb}d.")
+        return
+    for entry in changed:
+        print(f"{verb.capitalize()}d '{entry['name']}' for {entry['platform']} ({entry['scope']}-level).")
+    if not enable:
+        print(f"  Files parked under {ledger.disabled_dir()}; 'enable' puts them back.")
+
+
+def cmd_enable(args: argparse.Namespace) -> None:
+    """Move a disabled skill back into its tool's skills directory."""
+    _toggle(args, enable=True)
+
+
+def cmd_disable(args: argparse.Namespace) -> None:
+    """Move an installed skill out of its tool's skills directory without deleting it."""
+    _toggle(args, enable=False)
+
+
+def cmd_uninstall(args: argparse.Namespace) -> None:
+    """Move installed skills to the recycle bin and forget them."""
+    entries = _select_installed(args, verb="uninstall")
+    if not args.force:
+        names = ", ".join(f"{e['name']} ({e['platform']})" for e in entries)
+        print(f"Uninstall {names}? Use --force to confirm.", file=sys.stderr)
+        sys.exit(1)
+    removed: list[dict] = []
+    for entry in entries:
+        location = ledger.current_location(entry)
+        item = None
+        if location.exists():
+            # Trash records the enabled path as origin so restore lands it live.
+            item = ledger.move_to_trash(location, entry, kind="install")
+            sidecar = Path(item) / ledger.TRASH_SIDECAR
+            data = json.loads(sidecar.read_text(encoding="utf-8"))
+            data["origin"] = entry["path"]
+            sidecar.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        ledger.forget(entry["path"])
+        removed.append({"name": entry["name"], "platform": entry["platform"],
+                        "path": entry["path"], "trash": str(item) if item else None})
+    if getattr(args, "json", False):
+        print(json.dumps(removed, indent=2))
+        return
+    for r in removed:
+        print(f"Uninstalled '{r['name']}' from {r['platform']}.")
+        if r["trash"]:
+            print(f"  Recycle bin: {r['trash']}")
+    print(f"Restore with 'skill_registry.py restore <skill-name>'; 'purge' empties items older than {ledger.DEFAULT_TRASH_TTL_DAYS} days.")
+
+
+def cmd_trash(args: argparse.Namespace) -> None:
+    """List recycle-bin contents."""
+    items = ledger.list_trash()
+    if getattr(args, "json", False):
+        print(json.dumps(items, indent=2))
+        return
+    if not items:
+        print("Recycle bin is empty.")
+        return
+    headers = ["NAME", "KIND", "TRASHED", "ORIGIN"]
+    rows = [[i.get("name", ""), i.get("kind", ""), i.get("trashed_at", "")[:19], i.get("origin", "")] for i in items]
+    widths = [max(len(h), *(len(r[c]) for r in rows)) for c, h in enumerate(headers)]
+    print("  ".join(h.ljust(widths[i]) for i, h in enumerate(headers)))
+    for row in rows:
+        print("  ".join(cell.ljust(widths[i]) for i, cell in enumerate(row)))
+
+
+def cmd_restore(args: argparse.Namespace) -> None:
+    """Put the most recently trashed copy of a skill back where it came from."""
+    matches = [i for i in ledger.list_trash() if i.get("name") == args.skill_name]
+    if not matches:
+        print(f"Error: '{args.skill_name}' is not in the recycle bin.", file=sys.stderr)
+        sys.exit(1)
+    item = matches[0]
+    try:
+        origin = ledger.restore_from_trash(item, force=args.force)
+    except (FileNotFoundError, FileExistsError) as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    meta = item.get("meta", {})
+    if item.get("kind") == "install":
+        meta["enabled"] = True
+        meta.pop("parked_path", None)
+        ledger.record_install(meta)
+    elif item.get("kind") == "registry":
+        registry_path = Path(meta.get("registry", ""))
+        if (registry_path / "registry.json").exists():
+            data = load_registry(registry_path)
+            data["skills"].extend(meta.get("entries", []))
+            save_registry(registry_path, data)
+
+    if getattr(args, "json", False):
+        print(json.dumps({"restored": True, "skill": args.skill_name, "path": str(origin)}, indent=2))
+        return
+    print(f"Restored '{args.skill_name}' to {origin}.")
+
+
+def cmd_purge(args: argparse.Namespace) -> None:
+    """Delete recycle-bin items older than the TTL."""
+    purged = ledger.purge_trash(args.older_than)
+    if getattr(args, "json", False):
+        print(json.dumps(purged, indent=2))
+        return
+    if not purged:
+        print(f"Nothing older than {args.older_than} days in the recycle bin.")
+        return
+    for item in purged:
+        print(f"Purged {item.get('name', '')} (trashed {item.get('trashed_at', '')[:10]})")
+
+
 # --- CLI ---
 
 def _add_registry_arg(parser: argparse.ArgumentParser) -> None:
@@ -821,6 +1131,7 @@ def build_parser() -> argparse.ArgumentParser:
     # list
     p_list = subparsers.add_parser("list", help="List all skills in the registry")
     _add_registry_arg(p_list)
+    p_list.add_argument("--tag", help="Only skills carrying this tag")
     p_list.add_argument("--json", action="store_true", help="Output as JSON")
 
     # search
@@ -831,8 +1142,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     # install
     p_install = subparsers.add_parser("install", help="Install a skill from the registry")
-    p_install.add_argument("skill_name", help="Name of the skill to install")
+    p_install.add_argument("skill_name", nargs="?", help="Name of the skill to install")
     _add_registry_arg(p_install)
+    p_install.add_argument("--tag", help="Install every registry skill carrying this tag instead of one by name")
     p_install.add_argument("--author", help="Disambiguate when the name is shared by multiple authors")
     p_install.add_argument("--platform", choices=ALL_PLATFORMS, help="Target platform (auto-detected if omitted)")
     p_install.add_argument("--project", action="store_true", help="Install at project level instead of user level")
@@ -858,6 +1170,41 @@ def build_parser() -> argparse.ArgumentParser:
     _add_registry_arg(p_stale)
     p_stale.add_argument("--json", action="store_true", help="Output as JSON")
 
+    # installed
+    p_installed = subparsers.add_parser("installed", help="List skills installed on this machine")
+    p_installed.add_argument("--tag", help="Only skills carrying this tag")
+    p_installed.add_argument("--platform", choices=ALL_PLATFORMS, help="Only this platform")
+    p_installed.add_argument("--json", action="store_true", help="Output as JSON")
+
+    def _lifecycle(name: str, help_text: str) -> argparse.ArgumentParser:
+        p = subparsers.add_parser(name, help=help_text)
+        p.add_argument("skill_name", nargs="?", help="Name of one installed skill")
+        p.add_argument("--tag", help="Every installed skill carrying this tag")
+        p.add_argument("--all", action="store_true", help="Every installed skill")
+        p.add_argument("--platform", choices=ALL_PLATFORMS, help="Narrow to this platform")
+        p.add_argument("--json", action="store_true", help="Output as JSON")
+        return p
+
+    p_update = _lifecycle("update", "Reinstall skills whose registry version changed")
+    p_update.add_argument("--check", action="store_true", help="Report only; exit 2 if anything is outdated")
+    p_update.add_argument("--force", action="store_true", help="Reinstall even when the version matches")
+    _lifecycle("enable", "Put a disabled skill back into its tool's skills directory")
+    _lifecycle("disable", "Move a skill out of its tool's skills directory without deleting it")
+    p_uninstall = _lifecycle("uninstall", "Move installed skills to the recycle bin")
+    p_uninstall.add_argument("--force", action="store_true", help="Confirm uninstall")
+
+    # trash / restore / purge
+    p_trash = subparsers.add_parser("trash", help="List the recycle bin")
+    p_trash.add_argument("--json", action="store_true", help="Output as JSON")
+    p_restore = subparsers.add_parser("restore", help="Restore the latest trashed copy of a skill")
+    p_restore.add_argument("skill_name", help="Name of the skill to restore")
+    p_restore.add_argument("--force", action="store_true", help="Replace files already at the original path")
+    p_restore.add_argument("--json", action="store_true", help="Output as JSON")
+    p_purge = subparsers.add_parser("purge", help="Delete recycle-bin items older than a TTL")
+    p_purge.add_argument("--older-than", type=int, default=ledger.DEFAULT_TRASH_TTL_DAYS, metavar="DAYS",
+                         help=f"Age threshold in days (default: {ledger.DEFAULT_TRASH_TTL_DAYS})")
+    p_purge.add_argument("--json", action="store_true", help="Output as JSON")
+
     return parser
 
 
@@ -869,6 +1216,8 @@ def main() -> None:
     if args.command is None:
         parser.print_help()
         sys.exit(1)
+    if args.command == "install" and not args.skill_name and not args.tag:
+        parser.error("install needs a <skill-name> or --tag")
 
     commands = {
         "init":    cmd_init,
@@ -879,6 +1228,14 @@ def main() -> None:
         "info":    cmd_info,
         "remove":  cmd_remove,
         "stale":   cmd_stale,
+        "installed": cmd_installed,
+        "update":    cmd_update,
+        "enable":    cmd_enable,
+        "disable":   cmd_disable,
+        "uninstall": cmd_uninstall,
+        "trash":     cmd_trash,
+        "restore":   cmd_restore,
+        "purge":     cmd_purge,
     }
 
     cmd_func = commands.get(args.command)

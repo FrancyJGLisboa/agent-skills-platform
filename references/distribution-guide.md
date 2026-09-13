@@ -354,6 +354,20 @@ install them — like an internal app store for agent skills.
      python3 scripts/skill_registry.py search "sales" --registry ~/{team}-skills-registry
      python3 scripts/skill_registry.py install sales-report-skill --registry ~/{team}-skills-registry
 
+   STEP 6: Manage what is installed (tracked in ~/.agent-skills/installed.json)
+
+     python3 scripts/skill_registry.py installed                    # what is installed where
+     python3 scripts/skill_registry.py update --all --check         # exit 2 if the registry moved on
+     python3 scripts/skill_registry.py update --all                 # reinstall outdated skills
+     python3 scripts/skill_registry.py disable sales-report-skill   # park it outside the tool's tree
+     python3 scripts/skill_registry.py enable sales-report-skill    # put it back
+     python3 scripts/skill_registry.py uninstall sales-report-skill --force   # to the recycle bin
+     python3 scripts/skill_registry.py restore sales-report-skill   # back from the recycle bin
+     python3 scripts/skill_registry.py purge                        # drop bin items older than 30 days
+
+     Every lifecycle command also takes --tag <tag> or --all instead of a name,
+     so `disable --tag sales` parks every sales skill at once.
+
    ──────────────────────────────────────────────
    ```
 
