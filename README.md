@@ -21,6 +21,37 @@ skills. Give it a prompt plus the evidence behind the work—spreadsheets, repor
 emails, screenshots, transcripts, links, or scripts—and it builds a reusable workflow
 that a person can inspect, an organization can review, and a team can safely reuse.
 
+## Reality compression
+
+Most expert workflows are trapped in one person's head, documents, and chat history.
+Sharing a prompt does not transfer the full method or prove that it still works.
+
+> **Agent Skills Platform turns individual knowledge into controllable collective
+> capability.** It captures a real workflow, compiles it into a portable skill,
+> requires evidence that it works, governs the approved version, and delivers it to
+> the AI agents people already use.
+
+```text
+CAPTURE → COMPILE → PROVE → GOVERN → DELIVER AND LEARN
+```
+
+![Reality Compression of Agent Skills Platform: individual knowledge becomes a tested, governed, reusable team capability](docs/assets/agent-skills-platform-reality-compression.png)
+
+| Layer | What it provides |
+|---|---|
+| **LLM** | Reasoning and generation |
+| **Runtime / harness** | The environment in which the agent works |
+| **MCP / API / RAG** | Tools, actions, and retrieved knowledge |
+| **Skill** | A reusable method from a recognized situation to a verified outcome |
+| **Agent Skills Platform** | Creation, proof, governance, delivery, and lifecycle control |
+| **Marketplace** | Discovery and distribution of approved, versioned skills |
+
+The platform is the **control plane for skill supply**. It is not a model host, agent
+runtime, MCP registry, identity provider, or general app store. Its governed object is
+the skill lifecycle: who owns a skill, what evidence supports it, which immutable
+version is approved, where it is compatible, and how to update, roll back, quarantine,
+or retire it.
+
 ```text
 /agent-skills-platform
 
