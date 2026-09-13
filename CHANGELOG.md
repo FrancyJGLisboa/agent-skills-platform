@@ -7,6 +7,12 @@ to semantic versioning where practical.
 ## [Unreleased]
 
 ### Added
+- **Desktop app (`desktop/`)**: a Tauri 2 + React front end for `skill_registry.py`
+  with Installed, Registry, and Recycle-bin tabs and the enable / disable / update /
+  uninstall / restore actions. Holds no registry logic — every action shells out to
+  `skill_registry.py … --json` — so the CLI stays the single source of truth. Built
+  and clippy-checked on Linux, macOS, and Windows by a separate `Desktop` workflow
+  that only runs when `desktop/` changes.
 - **Installed-skill lifecycle in `skill_registry.py`**: `install` now records what
   landed where in `~/.agent-skills/installed.json` (override with `$AGENT_SKILLS_HOME`),
   and new commands act on that record — `installed`, `update [--check]`, `enable`,
