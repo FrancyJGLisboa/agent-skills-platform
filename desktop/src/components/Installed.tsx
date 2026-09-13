@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, InstalledSkill, Settings, UpdateResult } from "../lib/cli";
-import { TagFilter, useTagFilter } from "./TagFilter";
+import { TagChips, TagFilter, useTagFilter } from "./TagFilter";
 
 interface Props {
   settings: Settings;
@@ -111,11 +111,9 @@ export function Installed({ settings, onError, onNotice }: Props) {
                 <div className="meta">
                   <span>{s.platform}</span>
                   <span>{s.scope}</span>
-                  {s.tags.map((t) => (
-                    <button key={t} className="tag" onClick={() => setTag(t)}>{t}</button>
-                  ))}
+                  <TagChips tags={s.tags} onPick={setTag} />
                 </div>
-                <code className="path" title={s.path}>{s.path}</code>
+                <code className="path" title={s.path}><span>{s.path}</span></code>
                 <div className="actions">
                   {s.enabled ? (
                     <button disabled={isBusy} onClick={() => act("Disabled", s, () => api.disable(settings, s.name, s.platform))}>Disable</button>

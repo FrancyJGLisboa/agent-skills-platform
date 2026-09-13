@@ -76,6 +76,7 @@ button:hover:not(:disabled) { border-color: var(--muted); }
 button:disabled { opacity: 0.5; cursor: default; }
 button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 button.danger { color: var(--err); }
+button.tag.more { color: var(--muted); }
 button.tag {
   padding: 1px 8px; border-radius: 999px; font-size: 12px; background: var(--off-bg); border-color: transparent;
 }
@@ -91,7 +92,12 @@ button.tag {
 .version { color: var(--muted); font-variant-numeric: tabular-nums; }
 .desc { margin: 0; color: var(--text); }
 .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
-.path { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Truncate from the left so the skill directory name at the end stays visible. */
+.path {
+  font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  direction: rtl; text-align: left;
+}
+.path > span { direction: ltr; unicode-bidi: isolate; }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .pill { font-size: 12px; padding: 1px 8px; border-radius: 999px; background: var(--off-bg); color: var(--muted); }
@@ -106,6 +112,7 @@ button.tag {
 
 .settings { max-width: 640px; display: grid; gap: 14px; }
 .settings label { display: grid; gap: 4px; }
+.settings label > span { display: block; }
 .settings input, .settings select { width: 100%; }
 
 .toast {

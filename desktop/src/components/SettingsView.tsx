@@ -52,19 +52,19 @@ export function SettingsView({ initial, onSave, onError }: Props) {
         agent-skills-platform and a registry directory.
       </p>
       <label>
-        Python executable
+        <span>Python executable</span>
         <input value={form.python} onChange={set("python")} placeholder="python3" />
       </label>
       <label>
-        Platform <code>scripts/</code> directory
+        <span>Platform <code>scripts/</code> directory</span>
         <input value={form.scriptsDir} onChange={set("scriptsDir")} placeholder="/path/to/agent-skills-platform/scripts" />
       </label>
       <label>
-        Registry directory (contains <code>registry.json</code>)
+        <span>Registry directory (contains <code>registry.json</code>)</span>
         <input value={form.registry} onChange={set("registry")} placeholder="~/team-skills-registry" />
       </label>
       <label>
-        Default platform for installs
+        <span>Default platform for installs</span>
         <select value={form.platform} onChange={set("platform")}>
           {(platforms.includes(form.platform) ? platforms : [form.platform, ...platforms]).map((p) => (
             <option key={p} value={p}>{p}</option>
@@ -72,7 +72,7 @@ export function SettingsView({ initial, onSave, onError }: Props) {
         </select>
       </label>
       <label>
-        Project directory for project-scope installs
+        <span>Project directory for project-scope installs</span>
         <input value={form.projectDir} onChange={set("projectDir")} placeholder="(leave empty for user-scope only)" />
       </label>
       <div className="actions">

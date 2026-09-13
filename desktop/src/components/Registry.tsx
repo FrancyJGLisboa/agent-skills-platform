@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, RegistrySkill, Settings, StaleResult } from "../lib/cli";
-import { TagFilter, useTagFilter } from "./TagFilter";
+import { TagChips, TagFilter, useTagFilter } from "./TagFilter";
 
 interface Props {
   settings: Settings;
@@ -136,9 +136,7 @@ export function Registry({ settings, onError, onNotice, onInstalled }: Props) {
                 </div>
                 <p className="desc">{s.description}</p>
                 <div className="meta">
-                  {s.tags.map((t) => (
-                    <button key={t} className="tag" onClick={() => setTag(t)}>{t}</button>
-                  ))}
+                  <TagChips tags={s.tags} onPick={setTag} />
                 </div>
                 <div className="actions">
                   <button className="primary" disabled={busy !== null} onClick={() => install(s.name)}>

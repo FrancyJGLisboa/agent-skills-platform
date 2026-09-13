@@ -90,7 +90,7 @@ export function Trash({ settings, onError, onNotice, onRestored }: Props) {
                     {days === 0 ? "today" : `${days} day${days === 1 ? "" : "s"} ago`}
                   </span>
                 </div>
-                <code className="path" title={item.origin}>{item.origin}</code>
+                <code className="path" title={item.origin}><span>{item.origin}</span></code>
                 <div className="actions">
                   <button className="primary" disabled={busy !== null} onClick={() => restore(item)}>
                     {busy === item.item ? "Restoring…" : "Restore"}

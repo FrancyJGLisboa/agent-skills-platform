@@ -31,3 +31,24 @@ export function TagFilter<T extends Tagged>({ items, tag, setTag }: Props<T>) {
     </label>
   );
 }
+
+const MAX_CHIPS = 5;
+
+/** Up to five tag chips; the rest collapse into a "+N" chip that expands on click. */
+export function TagChips({ tags, onPick }: { tags: string[]; onPick: (tag: string) => void }) {
+  const [expanded, setExpanded] = useState(false);
+  const shown = expanded ? tags : tags.slice(0, MAX_CHIPS);
+  const hidden = tags.length - shown.length;
+  return (
+    <>
+      {shown.map((t) => (
+        <button key={t} className="tag" onClick={() => onPick(t)}>{t}</button>
+      ))}
+      {hidden > 0 && (
+        <button className="tag more" onClick={() => setExpanded(true)} title={tags.slice(MAX_CHIPS).join(", ")}>
+          +{hidden}
+        </button>
+      )}
+    </>
+  );
+}
