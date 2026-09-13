@@ -31,7 +31,41 @@ python3 scripts/check_pipeline.py <skill-dir>
 
 # Security scan
 python3 scripts/security_scan.py <skill-dir>
+
+# Run every gate a skill package must pass (spec, security, pipeline,
+# eval schema, Semantic Recon contracts)
+python3 scripts/skill_graph.py run <skill-dir>
+
+# Check that changed skills carry current verification evidence,
+# exactly as CI does
+python3 scripts/check_verification.py --base origin/main
 ```
+
+## Changing a bundled skill
+
+Anything under `references/examples/` is a real skill package, so CI holds it
+to the same gates a user's skill must pass. Two of those catch contributors
+out.
+
+**Semantic Recon contracts.** A skill whose `discovery.json` sets
+`data_interfaces.applies` must also declare `semantic_recon.sources` and ship
+the contract it names (`.contract_id` plus `code/contract_health.py`).
+`skill_graph.py run` fails otherwise, and its error carries the repair.
+
+**Verification evidence binds to a commit.** `VERIFICATION.md` records the
+commit that existed when it was generated, and the gate accepts a follow-up
+commit whose diff within the skill is *exactly* `{VERIFICATION.md}`. So a
+combined commit is rejected even when the evidence itself is current, and
+landing a change takes three steps in this order:
+
+1. Commit the behavior change. Include the `## Verification` link that
+   `generate_verification.py` appends to `README.md` — it must land here, not
+   in step 3.
+2. `python3 scripts/generate_verification.py <skill-dir>`
+3. Commit `VERIFICATION.md` on its own.
+
+`check_verification.py` prints this sequence whenever it fails, so you do not
+need to memorize it.
 
 ## Conventions
 
