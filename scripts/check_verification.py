@@ -27,9 +27,9 @@ SEQUENCE = """
 A report binds to the commit it records, so landing a skill change takes
 three steps in this order:
 
-  1. Commit the behavior change. Include the "## Verification" link that
-     generate_verification.py appends to README.md -- it must land here,
-     not in step 3.
+  1. Commit the behavior change. If the skill's README.md does not yet link
+     VERIFICATION.md, run generate_verification.py once first so the
+     "## Verification" section it appends lands here, not in step 3.
   2. python3 scripts/generate_verification.py <skill-dir>
   3. Commit VERIFICATION.md on its own. The gate accepts a follow-up commit
      whose diff within the skill is exactly {VERIFICATION.md}, so a combined
