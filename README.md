@@ -77,6 +77,13 @@ source-free installation.
 Do not use Git, edit registry files, or run marketplace commands. If the creator is
 not installed in your agent, send this section to your marketplace operator.
 
+### My teammates just need to install skills
+
+Give them the [desktop app](docs/DESKTOP_APP.md): download, paste the team-library
+link, click Install. Skills land in GitHub Copilot (or the tool they pick) with no
+terminal, Python, or Git involved. The same page shows admins how to create a
+library in four commands.
+
 ### I run the marketplace
 
 Use the [governed team marketplace guide](docs/TEAM_MARKETPLACE.md) to admit,
@@ -126,6 +133,7 @@ inspect the [skill package](references/examples/live-weather-briefing-skill).
 | Need | Read |
 |---|---|
 | Install on a supported AI tool | [Installation](docs/INSTALL.md) |
+| Let non-technical teammates browse and install skills | [Desktop app](docs/DESKTOP_APP.md) |
 | Create, correct, and hand off a first skill | [Worker runbook](docs/WORKER_RUNBOOK.md) |
 | Run a governed internal marketplace | [Team marketplace](docs/TEAM_MARKETPLACE.md) |
 | Understand scope and product boundaries | [Product scope](docs/PRODUCT_SCOPE.md) |
