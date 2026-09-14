@@ -21,6 +21,12 @@ to semantic versioning where practical.
   first; screens are named Installed / Library / Removed; a `desktop-v*` tag builds
   signed installers for macOS, Windows, and Linux and the app updates itself from the
   published release. `skill_registry.py` gains a `platforms` subcommand.
+- **Desktop app 0.3.0, library hygiene**: Installed groups each skill across the tools
+  it is installed for — one row per skill with a chip per tool (click to turn off/on,
+  × to remove, "Add tool" to install for another) — with checkboxes and a bottom action
+  bar for bulk Enable / Disable / Update / Remove, an issues banner when a skill's files
+  have gone missing or its library cannot be reached (Reinstall / Forget), and an
+  updates badge on the sidebar. `skill_registry.py installed --json` reports `present`.
 - **Desktop app "Use it when…"**: the skill detail view leads with what
   `discovery.json` says about when a skill fires — the question it answers, example
   requests that should and should not trigger it, trigger, decisions, success measure,

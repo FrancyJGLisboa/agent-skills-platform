@@ -57,6 +57,8 @@ export interface InstalledSkill {
   installed_at: string;
   enabled: boolean;
   parked_path?: string;
+  /** False when the files are no longer where the ledger says. */
+  present?: boolean;
 }
 
 export interface RegistrySkill {
@@ -177,6 +179,9 @@ export const api = {
       ...(scope === "project" ? ["--project"] : []),
       ...(force ? ["--force"] : []),
     ]).then((r) => expectOk(r)),
+  /** Install a skill for one more tool, from the registry it originally came from. */
+  installFor: (s: Settings, name: string, platform: string, registry: string, scope: "user" | "project") =>
+    run(s, ["install", name, "--registry", registry, "--platform", platform, ...(scope === "project" ? ["--project"] : []), "--force"]).then((r) => expectOk(r)),
   installTag: (s: Settings, tag: string, scope: "user" | "project") =>
     run(s, [
       "install", "--tag", tag, ...reg(s), "--platform", s.platform,

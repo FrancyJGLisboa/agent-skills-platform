@@ -1,6 +1,6 @@
 [package]
 name = "agent-skills-desktop"
-version = "0.2.0"
+version = "0.3.0"
 description = "Desktop manager for Agent Skills Platform registries and installed skills"
 authors = ["Agent Skills Platform contributors"]
 edition = "2021"

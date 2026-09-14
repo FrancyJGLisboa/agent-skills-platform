@@ -16,6 +16,7 @@ export default function App() {
   const [settings, setSettings] = useState<Settings | null>(() => loadSettings());
   const [tab, setTab] = useState<Tab>(() => (isConfigured(loadSettings()) ? "installed" : "settings"));
   const [counts, setCounts] = useState<Partial<Record<Tab, number>>>({});
+  const [outdated, setOutdated] = useState(0);
   const [drawer, setDrawer] = useState<DrawerSkill | null>(null);
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   // Bumping this remounts the data screens so an install on one shows on another.
@@ -39,7 +40,7 @@ export default function App() {
 
   return (
     <div className="flex h-full">
-      <Sidebar tab={tab} setTab={setTab} counts={counts} ready={isConfigured(settings)} />
+      <Sidebar tab={tab} setTab={setTab} counts={counts} outdated={outdated} ready={isConfigured(settings)} />
       <main className="min-w-0 flex-1 overflow-y-auto">
         {tab === "settings" || !isConfigured(settings) ? (
           <SettingsView
@@ -47,7 +48,7 @@ export default function App() {
             onSave={(s) => { saveSettings(s); setSettings(s); bump(); setTab("installed"); }}
           />
         ) : tab === "installed" ? (
-          <Installed key={epoch} settings={settings} onOpen={setDrawer} onCount={count("installed")} tagFilter={tagFilter} setTagFilter={setTagFilter} />
+          <Installed key={epoch} settings={settings} onOpen={setDrawer} onCount={count("installed")} onOutdated={setOutdated} tagFilter={tagFilter} setTagFilter={setTagFilter} />
         ) : tab === "registry" ? (
           <Registry key={epoch} settings={settings} onOpen={setDrawer} onInstalled={bump} onCount={count("registry")} tagFilter={tagFilter} setTagFilter={setTagFilter} goToSettings={() => setTab("settings")} />
         ) : (

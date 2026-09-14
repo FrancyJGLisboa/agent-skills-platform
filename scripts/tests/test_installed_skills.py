@@ -8,6 +8,7 @@ real home. Project-scope installs resolve against cwd, so tests chdir too.
 import argparse
 import json
 import os
+import shutil
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -313,3 +314,13 @@ def test_platforms_json_lists_every_platform_with_paths(capsys):
     copilot = next(r for r in rows if r["name"] == "github-copilot")
     assert copilot["user_path"] == "~/.copilot/skills"
     assert isinstance(copilot["detected"], bool)
+
+
+def test_installed_json_reports_whether_files_are_present(workspace, capsys):
+    path = install(workspace, "alpha")
+    capsys.readouterr()
+    reg.cmd_installed(ns(tag=None, platform=None, json=True))
+    assert json.loads(capsys.readouterr().out)[0]["present"] is True
+    shutil.rmtree(path)
+    reg.cmd_installed(ns(tag=None, platform=None, json=True))
+    assert json.loads(capsys.readouterr().out)[0]["present"] is False

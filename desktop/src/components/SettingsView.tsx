@@ -4,6 +4,7 @@ import { CheckCircle2, ChevronRight, FolderOpen, KeyRound, Link2, Loader2 } from
 import { clsx } from "clsx";
 import { DEFAULT_SETTINGS, defaultScriptsDir, library, LibraryInfo, listPlatforms, pickDirectory, PlatformInfo, Settings } from "../lib/cli";
 import { Button, Field, Input, PageHeader, Pill, Select } from "./ui";
+import { platformLabel } from "../lib/platforms";
 import { checkForUpdates } from "../lib/updates";
 import { getVersion } from "@tauri-apps/api/app";
 
@@ -12,16 +13,7 @@ interface Props {
   onSave: (settings: Settings) => void;
 }
 
-const FRIENDLY: Record<string, string> = {
-  "github-copilot": "GitHub Copilot (VS Code)",
-  "claude-code": "Claude Code",
-  cursor: "Cursor",
-  windsurf: "Windsurf",
-  codex: "Codex CLI",
-  gemini: "Gemini CLI",
-  universal: "Universal (~/.agents/skills)",
-};
-const label = (p: PlatformInfo) => FRIENDLY[p.name] ?? p.name;
+const label = (p: PlatformInfo) => (p.name === "github-copilot" ? "GitHub Copilot (VS Code)" : platformLabel(p.name));
 
 export function SettingsView({ initial, onSave }: Props) {
   const [form, setForm] = useState<Settings>(initial ?? DEFAULT_SETTINGS);
@@ -122,7 +114,7 @@ export function SettingsView({ initial, onSave }: Props) {
           <Select value={form.platform} onChange={(e) => set("platform")(e.target.value)} className="w-full">
             {detected.length > 0 && <optgroup label="On this computer">{detected.map((p) => <option key={p.name} value={p.name}>{label(p)}</option>)}</optgroup>}
             {others.length > 0 && <optgroup label="Other tools">{others.map((p) => <option key={p.name} value={p.name}>{label(p)}</option>)}</optgroup>}
-            {platforms.length === 0 && <option value={form.platform}>{FRIENDLY[form.platform] ?? form.platform}</option>}
+            {platforms.length === 0 && <option value={form.platform}>{platformLabel(form.platform)}</option>}
           </Select>
           {form.platform === "github-copilot" && (
             <p className="mt-2 text-[12px] text-ink-3">Installed skills land in <code className="font-mono">~/.copilot/skills</code>. Restart VS Code, then use them in Copilot Chat agent mode.</p>

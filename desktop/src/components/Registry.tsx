@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { Download, Library, RefreshCw, Search } from "lucide-react";
 import { api, library, RegistrySkill, Settings, StaleResult } from "../lib/cli";
 import { Button, Empty, Input, PageHeader, Pill, Select, TagChips } from "./ui";
+import { platformLabel } from "../lib/platforms";
 import { DrawerSkill } from "./SkillDrawer";
 
 interface Props {
@@ -57,7 +58,7 @@ export function Registry({ settings, onOpen, onInstalled, onCount, tagFilter, se
     setBusy(name);
     try {
       await api.install(settings, name, scope, force);
-      toast.success(`Installed ${name}`, { description: `${settings.platform} · ${scope}` });
+      toast.success(`Installed ${name}`, { description: `${platformLabel(settings.platform)} · ${scope}` });
       onInstalled();
     } catch (e) {
       const message = String(e);
@@ -118,7 +119,7 @@ export function Registry({ settings, onOpen, onInstalled, onCount, tagFilter, se
         )}
         {settings.projectDir && (
           <Select value={scope} onChange={(e) => setScope(e.target.value as Scope)} title="Install scope">
-            <option value="user">For me</option>
+            <option value="user">For me · {platformLabel(settings.platform)}</option>
             <option value="project">This project</option>
           </Select>
         )}
