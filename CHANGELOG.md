@@ -13,6 +13,18 @@ to semantic versioning where practical.
   `skill_registry.py … --json` — so the CLI stays the single source of truth. Built
   and clippy-checked on Linux, macOS, and Windows by a separate `Desktop` workflow
   that only runs when `desktop/` changes.
+- **Desktop app, Copilot-first release (0.2.0)**: the CLI ships inside the app as a
+  PyInstaller sidecar, so teammates need neither Python nor a checkout; Settings takes a
+  team-library Git URL that the app clones and fast-forwards on every launch (vendored
+  libgit2, no `git` install needed) with an optional access token kept in the OS
+  keychain; GitHub Copilot is the default install target with detected tools listed
+  first; screens are named Installed / Library / Removed; a `desktop-v*` tag builds
+  signed installers for macOS, Windows, and Linux and the app updates itself from the
+  published release. `skill_registry.py` gains a `platforms` subcommand.
+- **Desktop app "Use it when…"**: the skill detail view leads with what
+  `discovery.json` says about when a skill fires — the question it answers, example
+  requests that should and should not trigger it, trigger, decisions, success measure,
+  risk tier — and a verified/failed pill read from `VERIFICATION.md`.
 - **Desktop app redesign**: sidebar navigation with counts, Tailwind 4 tokens for light
   and dark, Lucide icons, Sonner toasts, an enable/disable switch per installed skill
   with hover-revealed actions, native folder pickers in Settings, and a skill detail

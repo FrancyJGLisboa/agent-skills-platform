@@ -15,6 +15,7 @@ Usage:
     python3 scripts/skill_registry.py info     <skill-name> [--registry PATH] [--json]
     python3 scripts/skill_registry.py remove   <skill-name> [--registry PATH] [--force]
     python3 scripts/skill_registry.py stale    [--registry PATH] [--json]
+    python3 scripts/skill_registry.py platforms [--json]
 
 Installed-skill lifecycle (tracked in ~/.agent-skills/installed.json, or
 $AGENT_SKILLS_HOME):
@@ -849,6 +850,23 @@ def cmd_stale(args: argparse.Namespace) -> None:
         print(f"\nSummary: {overdue} overdue, {due_soon} due soon, {len(results)} total")
 
 
+def cmd_platforms(args: argparse.Namespace) -> None:
+    """List supported install platforms with their user and project paths."""
+    rows = [
+        {"name": p.name, "user_path": p.user_path, "project_path": p.project_path,
+         "detected": bool(p.detect_dir) and Path(p.detect_dir).expanduser().exists()}
+        for p in PLATFORMS
+    ]
+    if getattr(args, "json", False):
+        print(json.dumps(rows, indent=2))
+        return
+    width = max(len(r["name"]) for r in rows)
+    for r in rows:
+        mark = "*" if r["detected"] else " "
+        print(f"{mark} {r['name'].ljust(width)}  {r['user_path']}")
+    print("\n* = detected on this machine")
+
+
 # --- Installed-skill lifecycle ---
 
 def _filter_by_tag(entries: list[dict], tag: str | None) -> list[dict]:
@@ -1170,6 +1188,10 @@ def build_parser() -> argparse.ArgumentParser:
     _add_registry_arg(p_stale)
     p_stale.add_argument("--json", action="store_true", help="Output as JSON")
 
+    # platforms
+    p_platforms = subparsers.add_parser("platforms", help="List supported install platforms")
+    p_platforms.add_argument("--json", action="store_true", help="Output as JSON")
+
     # installed
     p_installed = subparsers.add_parser("installed", help="List skills installed on this machine")
     p_installed.add_argument("--tag", help="Only skills carrying this tag")
@@ -1228,6 +1250,7 @@ def main() -> None:
         "info":    cmd_info,
         "remove":  cmd_remove,
         "stale":   cmd_stale,
+        "platforms": cmd_platforms,
         "installed": cmd_installed,
         "update":    cmd_update,
         "enable":    cmd_enable,

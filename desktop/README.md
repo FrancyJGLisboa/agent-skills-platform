@@ -10,35 +10,55 @@ The app holds no registry logic. Every action runs
 so the CLI stays the single source of truth and anything it can do the app can
 show.
 
-## Requirements
+## For teammates (no tools required)
 
-- A checkout of agent-skills-platform (the app needs its `scripts/` directory)
-- Python 3.10+ on `PATH` (or set the executable in Settings)
-- To build: Node 18+, Rust stable, and Tauri's platform prerequisites
-  (<https://tauri.app/start/prerequisites/>)
+Download the installer for your OS from the latest **Agent Skills desktop**
+release, open it, and paste the team-library link your admin sent you. That
+is all: the app bundles the skill CLI, keeps a copy of the library up to
+date, and installs skills into GitHub Copilot (or another tool you pick) with
+one click. It checks for its own updates on launch.
 
-## Run
+Private library? Open "Private repository? Add an access token" under the
+link and paste a personal access token with read access. It is stored in
+your system keychain.
+
+## For contributors
+
+- Node 18+, Rust stable, Python 3.10+ with `uv` (for the sidecar build), and
+  Tauri's platform prerequisites (<https://tauri.app/start/prerequisites/>)
 
 ```bash
 cd desktop
 npm install
+npm run sidecar       # bundles ../scripts/skill_registry.py into src-tauri/binaries/
 npm run tauri dev
 ```
 
-First launch opens Settings. The `scripts/` directory is pre-filled when the
-app can find one (`$AGENT_SKILLS_PLATFORM/scripts`, the repo it was built from,
-or a global install under `~/.claude/skills`, `~/.agents/skills`,
-`~/.copilot/skills`). Point it at a registry directory (one that contains
-`registry.json`) and pick the default platform for installs.
+The sidecar must exist before any cargo step: Tauri refuses to build without
+its `externalBin`. Rebuild it after changing anything under `scripts/`.
 
-## Build a bundle
+To run against a checkout instead of the bundled copy (so edits to the Python
+show up without rebuilding the sidecar), open Settings → Advanced → "Run from
+a checkout" and click Detect.
 
-```bash
-npm run tauri build            # every bundle type for this OS
-npm run tauri build -- --bundles app   # macOS .app only
-```
+## Releasing
 
-Output lands under `src-tauri/target/release/bundle/`.
+1. Bump `version` in `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and `package.json`.
+2. Tag `desktop-vX.Y.Z` and push the tag. `.github/workflows/desktop-release.yml`
+   builds macOS (Apple Silicon and Intel), Windows, and Linux installers and opens a draft release.
+3. Publish the draft. Installed apps offer the update on next launch.
+
+Secrets the release workflow uses (all optional; without them the builds are
+unsigned and the updater is disabled):
+
+| Secret | Purpose |
+|---|---|
+| `TAURI_SIGNING_PRIVATE_KEY` (+ `_PASSWORD`) | Signs updater artifacts. The matching public key is in `tauri.conf.json`; the private key lives in `~/.tauri/agent-skills-updater.key` on the machine that generated it. |
+| `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY` | macOS code signing (Developer ID Application, base64-encoded .p12). |
+| `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID` | macOS notarization (app-specific password). |
+
+Windows Authenticode signing is not wired yet; SmartScreen will warn on
+first launch until it is.
 
 ## Layout
 
@@ -47,7 +67,9 @@ src/lib/cli.ts           typed wrapper over the Rust bridge, one function per CL
 src/components/ui.tsx    Button, Input, Select, Pill, Switch, Field, PageHeader, Empty, TagChips, PathText
 src/components/          Sidebar, Installed, Registry, Trash, SettingsView, SkillDrawer
 src/index.css            Tailwind import, colour tokens (light + dark), SKILL.md prose styles
-src-tauri/src/lib.rs     registry(args), platforms(), default_scripts_dir(), skill_files(dir), skill_file(dir, file)
+src-tauri/src/lib.rs     registry(args) [sidecar or checkout], platforms(), skill_files/skill_file, library_* commands
+src-tauri/src/library.rs Git clone/fast-forward of the team library (vendored libgit2) + keychain token
+scripts/build-sidecar.mjs PyInstaller bundle of ../scripts/skill_registry.py
 ```
 
 Styling is Tailwind 4 with a small token set in `src/index.css`; icons are

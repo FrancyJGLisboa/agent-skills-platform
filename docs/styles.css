@@ -298,3 +298,12 @@ footer nav { display: flex; gap: var(--space-lg); }
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: .01ms !important; }
 }
+
+/* Desktop app section */
+.screenshot { margin: var(--space-2xl) 0 0; }
+.screenshot img { display: block; width: 100%; height: auto; border: 1px solid var(--color-rule); border-radius: var(--radius-md); box-shadow: 0 24px 60px -30px rgba(0, 0, 0, .35); }
+.screenshot figcaption { margin-top: var(--space-sm); color: var(--color-ink-muted); font-size: var(--text-sm); }
+.journey--steps { grid-template-columns: repeat(4, 1fr); }
+.journey--steps h3 { font-size: var(--text-lg); }
+@media (max-width: 900px) { .journey--steps { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .journey--steps { grid-template-columns: 1fr; } }

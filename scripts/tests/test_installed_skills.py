@@ -304,3 +304,12 @@ def test_parser_exposes_lifecycle_commands():
     assert args.older_than == 7
     args = parser.parse_args(["install", "--tag", "finance"])
     assert args.skill_name is None and args.tag == "finance"
+
+
+def test_platforms_json_lists_every_platform_with_paths(capsys):
+    reg.cmd_platforms(ns(json=True))
+    rows = json.loads(capsys.readouterr().out)
+    assert [r["name"] for r in rows] == reg.ALL_PLATFORMS
+    copilot = next(r for r in rows if r["name"] == "github-copilot")
+    assert copilot["user_path"] == "~/.copilot/skills"
+    assert isinstance(copilot["detected"], bool)

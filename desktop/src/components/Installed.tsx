@@ -89,7 +89,7 @@ export function Installed({ settings, onOpen, onCount, tagFilter, setTagFilter }
 
       <div className="px-6 py-5">
         {skills.length === 0 && !loading ? (
-          <Empty icon={<Boxes size={36} strokeWidth={1.25} />} title="Nothing installed yet" hint="Skills installed through skill_registry.py show up here. Open the Registry to install one." />
+          <Empty icon={<Boxes size={36} strokeWidth={1.25} />} title="Nothing installed yet" hint="Open the Library, pick a skill, and click Install. It shows up here and in your AI tool." />
         ) : visible.length === 0 ? (
           <Empty icon={<Boxes size={36} strokeWidth={1.25} />} title={`No installed skills tagged “${tagFilter}”`} action={<Button onClick={() => setTagFilter(null)}>Clear filter</Button>} />
         ) : (

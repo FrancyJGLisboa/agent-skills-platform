@@ -4,12 +4,38 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
 export interface Settings {
-  python: string;
-  scriptsDir: string;
+  /** Git URL of the team library (a repo with registry.json). Empty = none. */
+  libraryUrl: string;
+  /** Local registry directory. Set by library sync, or by hand in Advanced. */
   registry: string;
-  /** Working directory for project-scope installs. */
-  projectDir: string;
+  /** Default install target; github-copilot for the Copilot-first release. */
   platform: string;
+  /** Working directory for project-scope installs. Advanced. */
+  projectDir: string;
+  /** Advanced: run skill_registry.py from a checkout instead of the bundled sidecar. */
+  scriptsDir: string;
+  python: string;
+}
+
+export const DEFAULT_SETTINGS: Settings = {
+  libraryUrl: "", registry: "", platform: "github-copilot", projectDir: "", scriptsDir: "", python: "python3",
+};
+
+export interface PlatformInfo {
+  name: string;
+  user_path: string;
+  project_path: string;
+  detected: boolean;
+}
+
+export interface LibraryInfo {
+  url: string;
+  name: string;
+  path: string;
+  commit: string;
+  branch: string;
+  /** Unix seconds. */
+  synced_at: string;
 }
 
 export interface CliResult<T = unknown> {
@@ -76,11 +102,15 @@ const SETTINGS_KEY = "agent-skills-desktop.settings";
 export function loadSettings(): Settings | null {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
-    return raw ? (JSON.parse(raw) as Settings) : null;
+    // Older saves lack libraryUrl; fill defaults so every field is a string.
+    return raw ? { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<Settings>) } : null;
   } catch {
     return null;
   }
 }
+
+/** True once the app can do something useful: a library or a registry folder. */
+export const isConfigured = (s: Settings | null): s is Settings => !!s && (!!s.registry || !!s.libraryUrl);
 
 export function saveSettings(settings: Settings): void {
   try {
@@ -94,18 +124,26 @@ export async function defaultScriptsDir(): Promise<string> {
   return invoke<string>("default_scripts_dir");
 }
 
-export async function listPlatforms(settings: Settings): Promise<string[]> {
-  return invoke<string[]>("platforms", { python: settings.python, scriptsDir: settings.scriptsDir });
+export async function listPlatforms(settings: Pick<Settings, "python" | "scriptsDir">): Promise<PlatformInfo[]> {
+  return invoke<PlatformInfo[]>("platforms", { python: settings.python || null, scriptsDir: settings.scriptsDir || null });
 }
 
 export async function run<T = unknown>(settings: Settings, args: string[]): Promise<CliResult<T>> {
   return invoke<CliResult<T>>("registry", {
-    python: settings.python,
-    scriptsDir: settings.scriptsDir,
+    python: settings.python || null,
+    scriptsDir: settings.scriptsDir || null,
     cwd: settings.projectDir || null,
     args,
   });
 }
+
+export const library = {
+  sync: (url: string) => invoke<LibraryInfo>("library_sync", { url }),
+  status: (url: string) => invoke<LibraryInfo | null>("library_status", { url }),
+  hasRegistry: (path: string) => invoke<boolean>("library_has_registry", { path }),
+  setToken: (url: string, token: string) => invoke<void>("library_set_token", { url, token }),
+  hasToken: (url: string) => invoke<boolean>("library_has_token", { url }),
+};
 
 /** Throw a readable error when the CLI failed, so callers can show it once. */
 export function expectOk<T>(result: CliResult<T>, okCodes: number[] = [0]): T {

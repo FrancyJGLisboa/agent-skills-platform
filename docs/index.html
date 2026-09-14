@@ -24,6 +24,7 @@
       <a href="#paths">Choose a path</a>
       <a href="#example">See proof</a>
       <a href="#start">Try it</a>
+      <a href="#desktop">Desktop app</a>
       <a href="#trust">Trust</a>
     </nav>
     <a class="button button--small" href="https://github.com/FrancyJGLisboa/agent-skills-platform">GitHub&nbsp;★</a>
@@ -78,11 +79,12 @@
   </section>
 
   <section class="section" id="paths">
-    <header class="section__head"><p class="eyebrow">Start where you are</p><h2>One platform, three clear paths</h2><p>Pick the outcome you need—not an implementation detail.</p></header>
+    <header class="section__head"><p class="eyebrow">Start where you are</p><h2>One platform, four clear paths</h2><p>Pick the outcome you need—not an implementation detail.</p></header>
     <ol class="journey">
       <li><span>01</span><h3>I have a workflow</h3><p>Turn examples of real work into a tested skill without writing a technical specification.</p><small><a href="#start">Create your first skill</a></small></li>
       <li><span>02</span><h3>I run an AI team</h3><p>Review, approve, publish, update, roll back, and quarantine skills through a governed marketplace.</p><small><a href="#control-plane">Run a marketplace</a></small></li>
       <li><span>03</span><h3>I need evidence</h3><p>Inspect validation, security, evaluation, and representative-run evidence before you depend on a skill.</p><small><a href="#trust">Review trust boundaries</a></small></li>
+      <li><span>04</span><h3>I just use skills</h3><p>Browse the team library, read what a skill does, and install it into GitHub Copilot with one click. No terminal, Python, or Git.</p><small><a href="#desktop">Get the desktop app</a></small></li>
     </ol>
   </section>
 
@@ -264,6 +266,40 @@ Every Friday I clean the CRM export, calculate regional totals, and email a PDF 
           <li><span class="skill-flow__number">06</span><strong>Build, prove, publish</strong><small>Compile the confirmed state into a tested, governed skill.</small></li>
         </ol>
       </figure>
+    </div>
+  </section>
+
+  <section class="section" id="desktop">
+    <header class="section__head">
+      <p class="eyebrow">For teammates</p>
+      <h2>The desktop app: browse, read, install</h2>
+      <p>Built for people who use AI tools but never open a terminal. Paste the library link once; everything else is a click.</p>
+    </header>
+    <figure class="screenshot">
+      <picture>
+        <source srcset="assets/desktop/library-dark.png" media="(prefers-color-scheme: dark)">
+        <img src="assets/desktop/library.png" alt="Agent Skills desktop app, Library tab: three skills with validation and security badges and an Install button" width="1000" height="640" loading="lazy">
+      </picture>
+      <figcaption>Every skill shows its validation, security, and review status before you install it. Click a row to read its SKILL.md and browse its files.</figcaption>
+    </figure>
+    <ol class="journey journey--steps">
+      <li><span>01</span><h3>Download</h3><p>Get the installer for macOS, Windows, or Linux from the latest desktop release. It updates itself afterwards.</p></li>
+      <li><span>02</span><h3>Connect</h3><p>Paste the team-library link your admin sent. Private repository? Add an access token; it stays in your keychain.</p></li>
+      <li><span>03</span><h3>Install</h3><p>Pick a skill, click Install. It lands in GitHub Copilot (VS Code) by default, or the tool you choose.</p></li>
+      <li><span>04</span><h3>Use</h3><p>Restart VS Code and use the skill in Copilot Chat agent mode. Turn skills off, update, or remove them from the Installed tab.</p></li>
+    </ol>
+    <div class="next-action">
+      <p><a class="button" href="https://github.com/FrancyJGLisboa/agent-skills-platform/releases?q=desktop&amp;expanded=true">Download the desktop app</a></p>
+      <p class="eyebrow">Admins: create a team library in four commands</p>
+      <div class="codewrap codewrap--light">
+        <pre><code id="library-command">python3 scripts/skill_registry.py init --registry ~/team-skills --name "ACME Skills"
+python3 scripts/skill_registry.py publish ./weekly-crm-report --registry ~/team-skills --tags finance,reports
+cd ~/team-skills &amp;&amp; git init -b main &amp;&amp; git add -A &amp;&amp; git commit -m "Team library"
+gh repo create acme/team-skills --private --source . --push</code></pre>
+        <button class="copybtn copybtn--light" type="button" data-copy="library-command">Copy</button>
+      </div>
+      <p class="muted">Publishing runs validation and a security scan; skills that fail do not enter the library. Push a new version and every teammate's app offers the update on next launch.</p>
+      <p><a class="text-link" href="DESKTOP_APP.html">Read the desktop app guide</a></p>
     </div>
   </section>
 

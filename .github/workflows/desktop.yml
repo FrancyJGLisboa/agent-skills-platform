@@ -3,10 +3,10 @@ name: Desktop
 on:
   push:
     branches: [main]
-    paths: ["desktop/**", ".github/workflows/desktop.yml"]
+    paths: ["desktop/**", "scripts/**", ".github/workflows/desktop.yml"]
   pull_request:
     branches: [main]
-    paths: ["desktop/**", ".github/workflows/desktop.yml"]
+    paths: ["desktop/**", "scripts/**", ".github/workflows/desktop.yml"]
 
 jobs:
   check:
@@ -28,6 +28,12 @@ jobs:
           cache: npm
           cache-dependency-path: desktop/package-lock.json
 
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v10.0.1
+
       - uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
@@ -43,6 +49,18 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
+      # tauri-build refuses to compile without the externalBin present for the
+      # host triple, so the sidecar is built before any cargo step.
+      - name: Build the skill_registry sidecar
+        run: npm run sidecar
+
+      - name: Sidecar smoke test
+        shell: bash
+        run: |
+          bin=$(ls src-tauri/binaries/skill_registry-*)
+          "$bin" platforms --json | head -3
+          AGENT_SKILLS_HOME="$RUNNER_TEMP/ash" "$bin" installed
+
       - name: Type-check and build the frontend
         run: npm run build
 
@@ -51,3 +69,6 @@ jobs:
 
       - name: Clippy
         run: cargo clippy --manifest-path src-tauri/Cargo.toml --locked -- -D warnings
+
+      - name: Rust tests
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked

@@ -1,5 +1,7 @@
 # Installation Guide
 
+> **Not a developer?** The [desktop app](DESKTOP_APP.md) installs skills from your team's library with one click — no terminal needed. This page covers installing the platform itself.
+
 Every way to install `agent-skills-platform` (and the skills it generates) beyond
 the chooser in [Create your first skill](../README.md#create-your-first-skill): per-tool
 native plugins, per-project clones, all 17 platform paths, and the universal
