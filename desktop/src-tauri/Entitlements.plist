@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!--
+    Applied to every signed binary in the bundle, including the skill_registry
+    sidecar. PyInstaller's one-file sidecar extracts a Python runtime at launch
+    whose dylibs are not signed by us; the hardened runtime's library
+    validation would refuse to load them ("different Team IDs"). These
+    entitlements are the documented set for embedding Python under the
+    hardened runtime and keep the app notarizable.
+  -->
+  <key>com.apple.security.cs.disable-library-validation</key>
+  <true/>
+  <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+  <true/>
+  <key>com.apple.security.cs.allow-dyld-environment-variables</key>
+  <true/>
+</dict>
+</plist>
