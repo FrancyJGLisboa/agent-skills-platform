@@ -2,7 +2,9 @@
 //!
 //! The Python CLI stays the single source of truth for registry and
 //! installed-skill logic; every command here runs it with `--json` and hands
-//! the parsed output to the UI. No registry logic lives in Rust.
+//! the parsed output to the UI. No registry logic lives in Rust. The two file
+//! commands only read inside a skill directory the UI already knows about, so
+//! the detail view can show `SKILL.md` and the file tree.
 
 use serde::Serialize;
 use std::path::{Path, PathBuf};
@@ -103,11 +105,82 @@ fn default_scripts_dir() -> String {
         .unwrap_or_default()
 }
 
+const SKIPPED_DIRS: [&str; 6] = [".git", "__pycache__", "node_modules", ".venv", "venv", ".pytest_cache"];
+const MAX_TREE_ENTRIES: usize = 500;
+
+#[derive(Serialize)]
+pub struct FileEntry {
+    /// Path relative to the skill directory, `/`-separated.
+    pub path: String,
+    pub size: u64,
+}
+
+fn walk(root: &Path, dir: &Path, out: &mut Vec<FileEntry>) {
+    let Ok(entries) = std::fs::read_dir(dir) else { return };
+    let mut entries: Vec<_> = entries.flatten().collect();
+    entries.sort_by_key(|e| e.file_name());
+    for entry in entries {
+        if out.len() >= MAX_TREE_ENTRIES {
+            return;
+        }
+        let path = entry.path();
+        let name = entry.file_name().to_string_lossy().to_string();
+        if path.is_dir() {
+            if !SKIPPED_DIRS.contains(&name.as_str()) {
+                walk(root, &path, out);
+            }
+        } else if let Ok(rel) = path.strip_prefix(root) {
+            out.push(FileEntry {
+                path: rel.to_string_lossy().replace('\\', "/"),
+                size: entry.metadata().map(|m| m.len()).unwrap_or(0),
+            });
+        }
+    }
+}
+
+/// Files under a skill directory, for the detail view's tree.
+#[tauri::command]
+fn skill_files(dir: String) -> Result<Vec<FileEntry>, String> {
+    let root = Path::new(&dir);
+    if !root.is_dir() {
+        return Err(format!("not a directory: {dir}"));
+    }
+    let mut out = Vec::new();
+    walk(root, root, &mut out);
+    Ok(out)
+}
+
+const MAX_FILE_BYTES: u64 = 512 * 1024;
+
+/// Read one text file inside a skill directory. Refuses paths that escape
+/// `dir` and files larger than 512 KiB.
+#[tauri::command]
+fn skill_file(dir: String, file: String) -> Result<String, String> {
+    let root = Path::new(&dir).canonicalize().map_err(|e| e.to_string())?;
+    let target = root.join(&file).canonicalize().map_err(|e| e.to_string())?;
+    if !target.starts_with(&root) {
+        return Err(format!("{file} is outside the skill directory"));
+    }
+    let size = std::fs::metadata(&target).map_err(|e| e.to_string())?.len();
+    if size > MAX_FILE_BYTES {
+        return Err(format!("{file} is {size} bytes; the viewer stops at {MAX_FILE_BYTES}"));
+    }
+    let bytes = std::fs::read(&target).map_err(|e| e.to_string())?;
+    String::from_utf8(bytes).map_err(|_| format!("{file} is not UTF-8 text"))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![registry, platforms, default_scripts_dir])
+        .plugin(tauri_plugin_dialog::init())
+        .invoke_handler(tauri::generate_handler![
+            registry,
+            platforms,
+            default_scripts_dir,
+            skill_files,
+            skill_file
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

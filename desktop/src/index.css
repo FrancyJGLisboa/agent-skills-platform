@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+/* Neutral surface scale + one accent; dark values follow prefers-color-scheme. */
+@theme {
+  --color-bg: #f6f6f4;
+  --color-surface: #ffffff;
+  --color-surface-2: #f0f0ed;
+  --color-line: #e4e4df;
+  --color-ink: #1c1c1a;
+  --color-ink-2: #5f5f5a;
+  --color-ink-3: #8f8f88;
+  --color-accent: #4f46e5;
+  --color-accent-ink: #ffffff;
+  --color-ok: #15803d;
+  --color-ok-bg: #dcfce7;
+  --color-warn: #a16207;
+  --color-warn-bg: #fef3c7;
+  --color-err: #b91c1c;
+  --color-err-bg: #fee2e2;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #141414;
+    --color-surface: #1c1c1c;
+    --color-surface-2: #242424;
+    --color-line: #2e2e2e;
+    --color-ink: #ececea;
+    --color-ink-2: #a3a39e;
+    --color-ink-3: #6f6f6a;
+    --color-accent: #818cf8;
+    --color-accent-ink: #0f0f2a;
+    --color-ok: #4ade80;
+    --color-ok-bg: #14532d;
+    --color-warn: #fbbf24;
+    --color-warn-bg: #451a03;
+    --color-err: #f87171;
+    --color-err-bg: #450a0a;
+  }
+}
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  cursor: default;
+}
+input, textarea, pre, code, .selectable { user-select: text; }
+
+/* Rendered SKILL.md in the detail drawer */
+.prose-skill { font-size: 13px; line-height: 1.6; }
+.prose-skill h1 { font-size: 18px; font-weight: 600; margin: 0 0 12px; }
+.prose-skill h2 { font-size: 15px; font-weight: 600; margin: 20px 0 8px; }
+.prose-skill h3 { font-size: 13px; font-weight: 600; margin: 16px 0 6px; }
+.prose-skill p, .prose-skill ul, .prose-skill ol { margin: 0 0 10px; }
+.prose-skill ul, .prose-skill ol { padding-left: 20px; }
+.prose-skill li { margin: 2px 0; }
+.prose-skill code { font-family: var(--font-mono); font-size: 12px; background: var(--color-surface-2); padding: 1px 4px; border-radius: 4px; }
+.prose-skill pre { background: var(--color-surface-2); border: 1px solid var(--color-line); border-radius: 8px; padding: 10px 12px; overflow: auto; margin: 0 0 12px; }
+.prose-skill pre code { background: none; padding: 0; }
+.prose-skill table { border-collapse: collapse; margin: 0 0 12px; }
+.prose-skill th, .prose-skill td { border: 1px solid var(--color-line); padding: 4px 8px; text-align: left; }
+.prose-skill a { color: var(--color-accent); }
+.prose-skill hr { border: 0; border-top: 1px solid var(--color-line); margin: 16px 0; }

@@ -1,81 +1,46 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { Toaster } from "sonner";
 import { loadSettings, saveSettings, Settings } from "./lib/cli";
+import { Sidebar } from "./components/Sidebar";
 import { Installed } from "./components/Installed";
 import { Registry } from "./components/Registry";
 import { Trash } from "./components/Trash";
 import { SettingsView } from "./components/SettingsView";
-import "./App.css";
+import { DrawerSkill, SkillDrawer } from "./components/SkillDrawer";
 
-type Tab = "installed" | "registry" | "trash" | "settings";
-
-interface Toast {
-  kind: "error" | "notice";
-  message: string;
-}
+export type Tab = "installed" | "registry" | "trash" | "settings";
 
 export default function App() {
   const [settings, setSettings] = useState<Settings | null>(() => loadSettings());
   const [tab, setTab] = useState<Tab>(() => (loadSettings() ? "installed" : "settings"));
-  const [toast, setToast] = useState<Toast | null>(null);
-  // Bumping this remounts the data tabs so an install on one tab shows on another.
+  const [counts, setCounts] = useState<Partial<Record<Tab, number>>>({});
+  const [drawer, setDrawer] = useState<DrawerSkill | null>(null);
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
+  // Bumping this remounts the data screens so an install on one shows on another.
   const [epoch, setEpoch] = useState(0);
-
-  const onError = useCallback((message: string) => setToast({ kind: "error", message }), []);
-  const onNotice = useCallback((message: string) => setToast({ kind: "notice", message }), []);
   const bump = useCallback(() => setEpoch((n) => n + 1), []);
-
-  useEffect(() => {
-    if (!toast || toast.kind === "error") return;
-    const id = setTimeout(() => setToast(null), 3500);
-    return () => clearTimeout(id);
-  }, [toast]);
-
-  const tabs: [Tab, string][] = [
-    ["installed", "Installed"],
-    ["registry", "Registry"],
-    ["trash", "Recycle bin"],
-    ["settings", "Settings"],
-  ];
+  const count = (id: Tab) => (n: number) => setCounts((c) => (c[id] === n ? c : { ...c, [id]: n }));
+  const closeDrawer = useCallback(() => setDrawer(null), []);
 
   return (
-    <div className="app">
-      <nav className="tabs">
-        <span className="brand">Agent Skills</span>
-        {tabs.map(([id, label]) => (
-          <button key={id} className={tab === id ? "active" : ""} onClick={() => setTab(id)} disabled={!settings && id !== "settings"}>
-            {label}
-          </button>
-        ))}
-      </nav>
-
-      <main>
+    <div className="flex h-full">
+      <Sidebar tab={tab} setTab={setTab} counts={counts} ready={settings !== null} />
+      <main className="min-w-0 flex-1 overflow-y-auto">
         {tab === "settings" || !settings ? (
           <SettingsView
             initial={settings}
-            onError={onError}
-            onSave={(s) => {
-              saveSettings(s);
-              setSettings(s);
-              bump();
-              setTab("installed");
-              onNotice("Settings saved");
-            }}
+            onSave={(s) => { saveSettings(s); setSettings(s); bump(); setTab("installed"); }}
           />
         ) : tab === "installed" ? (
-          <Installed key={epoch} settings={settings} onError={onError} onNotice={onNotice} />
+          <Installed key={epoch} settings={settings} onOpen={setDrawer} onCount={count("installed")} tagFilter={tagFilter} setTagFilter={setTagFilter} />
         ) : tab === "registry" ? (
-          <Registry key={epoch} settings={settings} onError={onError} onNotice={onNotice} onInstalled={bump} />
+          <Registry key={epoch} settings={settings} onOpen={setDrawer} onInstalled={bump} onCount={count("registry")} tagFilter={tagFilter} setTagFilter={setTagFilter} goToSettings={() => setTab("settings")} />
         ) : (
-          <Trash key={epoch} settings={settings} onError={onError} onNotice={onNotice} onRestored={bump} />
+          <Trash key={epoch} settings={settings} onRestored={bump} onCount={count("trash")} />
         )}
       </main>
-
-      {toast && (
-        <div className={`toast ${toast.kind}`} role={toast.kind === "error" ? "alert" : "status"}>
-          <pre>{toast.message}</pre>
-          <button onClick={() => setToast(null)} aria-label="Dismiss">×</button>
-        </div>
-      )}
+      <SkillDrawer skill={drawer} onClose={closeDrawer} onTag={setTagFilter} />
+      <Toaster position="bottom-right" richColors closeButton toastOptions={{ style: { fontSize: 13 } }} />
     </div>
   );
 }
