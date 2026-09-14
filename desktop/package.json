@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "sidecar": "node scripts/build-sidecar.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
