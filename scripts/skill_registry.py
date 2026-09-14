@@ -929,7 +929,11 @@ def cmd_installed(args: argparse.Namespace) -> None:
         tag=getattr(args, "tag", None), platform=getattr(args, "platform", None),
     )
     if getattr(args, "json", False):
-        print(json.dumps(entries, indent=2))
+        # `present` tells a caller whether the files are still where the
+        # ledger says (a user may have deleted the directory by hand).
+        print(json.dumps(
+            [{**e, "present": ledger.current_location(e).is_dir()} for e in entries], indent=2,
+        ))
         return
     print(_format_installed(entries))
 

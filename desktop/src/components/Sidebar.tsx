@@ -6,6 +6,8 @@ interface Props {
   tab: Tab;
   setTab: (tab: Tab) => void;
   counts: Partial<Record<Tab, number>>;
+  /** Installed skills with a newer version in the library. */
+  outdated: number;
   ready: boolean;
 }
 
@@ -15,7 +17,7 @@ const ITEMS: { id: Tab; label: string; icon: typeof Boxes }[] = [
   { id: "trash", label: "Removed", icon: Trash2 },
 ];
 
-export function Sidebar({ tab, setTab, counts, ready }: Props) {
+export function Sidebar({ tab, setTab, counts, outdated, ready }: Props) {
   const item = (id: Tab, label: string, Icon: typeof Boxes) => {
     const active = tab === id;
     const disabled = !ready && id !== "settings";
@@ -32,6 +34,7 @@ export function Sidebar({ tab, setTab, counts, ready }: Props) {
       >
         <Icon size={16} strokeWidth={1.75} className={active ? "text-accent" : ""} />
         <span className="flex-1">{label}</span>
+        {id === "installed" && outdated > 0 && <span title={`${outdated} update${outdated === 1 ? "" : "s"} available`} className="rounded-full bg-warn-bg px-1.5 text-[11px] font-medium text-warn">{outdated}</span>}
         {counts[id] !== undefined && counts[id]! > 0 && <span className="text-[11px] text-ink-3">{counts[id]}</span>}
       </button>
     );
