@@ -13,6 +13,10 @@ to semantic versioning where practical.
   `skill_registry.py … --json` — so the CLI stays the single source of truth. Built
   and clippy-checked on Linux, macOS, and Windows by a separate `Desktop` workflow
   that only runs when `desktop/` changes.
+- **Desktop app redesign**: sidebar navigation with counts, Tailwind 4 tokens for light
+  and dark, Lucide icons, Sonner toasts, an enable/disable switch per installed skill
+  with hover-revealed actions, native folder pickers in Settings, and a skill detail
+  drawer that shows the file tree and renders `SKILL.md` (or any text file) in place.
 - **Installed-skill lifecycle in `skill_registry.py`**: `install` now records what
   landed where in `~/.agent-skills/installed.json` (override with `$AGENT_SKILLS_HOME`),
   and new commands act on that record — `installed`, `update [--check]`, `enable`,

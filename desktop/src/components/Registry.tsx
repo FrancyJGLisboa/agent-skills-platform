@@ -1,153 +1,163 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { Download, Library, RefreshCw, Search } from "lucide-react";
 import { api, RegistrySkill, Settings, StaleResult } from "../lib/cli";
-import { TagChips, TagFilter, useTagFilter } from "./TagFilter";
+import { Button, Empty, Input, PageHeader, Pill, Select, TagChips } from "./ui";
+import { DrawerSkill } from "./SkillDrawer";
 
 interface Props {
   settings: Settings;
-  onError: (message: string) => void;
-  onNotice: (message: string) => void;
+  onOpen: (skill: DrawerSkill) => void;
   onInstalled: () => void;
+  onCount: (n: number) => void;
+  tagFilter: string | null;
+  setTagFilter: (t: string | null) => void;
+  goToSettings: () => void;
 }
 
-export function Registry({ settings, onError, onNotice, onInstalled }: Props) {
+type Scope = "user" | "project";
+
+export function Registry({ settings, onOpen, onInstalled, onCount, tagFilter, setTagFilter, goToSettings }: Props) {
   const [skills, setSkills] = useState<RegistrySkill[]>([]);
   const [stale, setStale] = useState<Record<string, StaleResult>>({});
   const [query, setQuery] = useState("");
-  const [scope, setScope] = useState<"user" | "project">("user");
+  const [scope, setScope] = useState<Scope>(settings.projectDir ? "project" : "user");
   const [busy, setBusy] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const { tag, setTag, filtered } = useTagFilter(skills);
 
   const refresh = useCallback(async () => {
-    if (!settings.registry) {
-      setSkills([]);
-      setLoading(false);
-      return;
-    }
+    if (!settings.registry) { setLoading(false); return; }
     setLoading(true);
     try {
       const [list, staleness] = await Promise.all([api.registryList(settings), api.stale(settings)]);
       setSkills(list);
+      onCount(list.length);
       setStale(Object.fromEntries(staleness.map((s) => [s.name, s])));
     } catch (e) {
-      onError(String(e));
+      toast.error("Could not read the registry", { description: String(e) });
     } finally {
       setLoading(false);
     }
-  }, [settings, onError]);
+  }, [settings, onCount]);
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  useEffect(() => { refresh(); }, [refresh]);
 
-  const visible = filtered.filter((s) => {
+  const tags = useMemo(() => Array.from(new Set(skills.flatMap((s) => s.tags))).sort(), [skills]);
+  const visible = skills.filter((s) => {
+    if (tagFilter && !s.tags.includes(tagFilter)) return false;
     const q = query.trim().toLowerCase();
-    if (!q) return true;
-    return [s.name, s.description, s.author, s.tags.join(" ")].join(" ").toLowerCase().includes(q);
+    return !q || [s.name, s.description, s.author, s.tags.join(" ")].join(" ").toLowerCase().includes(q);
   });
 
   const install = async (name: string, force = false) => {
     setBusy(name);
     try {
       await api.install(settings, name, scope, force);
-      onNotice(`Installed ${name} for ${settings.platform} (${scope})`);
+      toast.success(`Installed ${name}`, { description: `${settings.platform} · ${scope}` });
       onInstalled();
     } catch (e) {
       const message = String(e);
-      if (!force && message.includes("already installed") && confirm(`${name} is already installed there. Overwrite?`)) {
+      if (!force && message.includes("already installed") && confirm(`${name} is already installed there. Overwrite it?`)) {
         await install(name, true);
         return;
       }
-      onError(message);
+      toast.error(`Install ${name} failed`, { description: message });
     } finally {
       setBusy(null);
     }
   };
 
   const installTag = async () => {
-    if (!tag) return;
-    setBusy(`tag:${tag}`);
+    if (!tagFilter) return;
+    setBusy(`tag:${tagFilter}`);
     try {
-      await api.installTag(settings, tag, scope);
-      onNotice(`Installed every “${tag}” skill for ${settings.platform} (${scope})`);
+      await api.installTag(settings, tagFilter, scope);
+      toast.success(`Installed every “${tagFilter}” skill`, { description: `${settings.platform} · ${scope}` });
       onInstalled();
     } catch (e) {
-      onError(String(e));
+      toast.error("Bulk install failed", { description: String(e) });
     } finally {
       setBusy(null);
     }
   };
 
+  const pillsFor = (s: RegistrySkill): DrawerSkill["pills"] => {
+    const out: NonNullable<DrawerSkill["pills"]> = [];
+    if (s.validation) out.push({ tone: s.validation.valid ? "ok" : "err", text: s.validation.valid ? "valid" : `${s.validation.errors} errors` });
+    if (s.security) out.push({ tone: s.security.clean ? "ok" : "err", text: s.security.clean ? "clean" : `${s.security.issues} issues` });
+    const st = stale[s.name];
+    if (st && st.status !== "fresh" && st.status !== "unknown") out.push({ tone: st.status === "overdue" ? "err" : "warn", text: `review ${st.status.replace("_", " ")}` });
+    return out;
+  };
+
   if (!settings.registry) {
-    return <p className="muted">Set a registry path in Settings to browse and install skills.</p>;
+    return (
+      <>
+        <PageHeader title="Registry" />
+        <Empty icon={<Library size={36} strokeWidth={1.25} />} title="No registry configured" hint="Point the app at a directory containing registry.json to browse and install skills." action={<Button variant="primary" onClick={goToSettings}>Open settings</Button>} />
+      </>
+    );
   }
 
   return (
-    <section>
-      <header className="toolbar">
-        <h2>Registry <span className="count">{skills.length}</span></h2>
-        <input placeholder="Search name, description, tags…" value={query} onChange={(e) => setQuery(e.target.value)} />
-        <TagFilter items={skills} tag={tag} setTag={setTag} />
-        <label className="filter">
-          Scope
-          <select value={scope} onChange={(e) => setScope(e.target.value as "user" | "project")}>
-            <option value="user">user ({settings.platform})</option>
-            <option value="project">project</option>
-          </select>
-        </label>
-        {tag && (
-          <button className="primary" disabled={busy !== null} onClick={installTag}>
-            Install all “{tag}” ({filtered.length})
-          </button>
+    <>
+      <PageHeader title="Registry" count={skills.length}>
+        <div className="relative">
+          <Search size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-3" />
+          <Input placeholder="Search skills…" value={query} onChange={(e) => setQuery(e.target.value)} className="w-56 pl-8" />
+        </div>
+        {tags.length > 0 && (
+          <Select value={tagFilter ?? ""} onChange={(e) => setTagFilter(e.target.value || null)}>
+            <option value="">All tags</option>
+            {tags.map((t) => <option key={t} value={t}>{t}</option>)}
+          </Select>
         )}
-        <button onClick={refresh} disabled={loading}>Refresh</button>
-      </header>
-      <p className="muted small">{settings.registry}</p>
+        <Select value={scope} onChange={(e) => setScope(e.target.value as Scope)} title="Install scope">
+          <option value="user">User · {settings.platform}</option>
+          <option value="project" disabled={!settings.projectDir}>Project{settings.projectDir ? "" : " (set a project dir)"}</option>
+        </Select>
+        {tagFilter && (
+          <Button variant="primary" loading={busy === `tag:${tagFilter}`} disabled={busy !== null} onClick={installTag}>
+            <Download size={14} /> Install all “{tagFilter}” ({visible.length})
+          </Button>
+        )}
+        <Button variant="ghost" onClick={refresh} disabled={loading} aria-label="Refresh"><RefreshCw size={14} className={loading ? "animate-spin" : ""} /></Button>
+      </PageHeader>
 
-      {loading && skills.length === 0 ? (
-        <p className="muted">Reading registry.json…</p>
-      ) : visible.length === 0 ? (
-        <p className="muted">{skills.length === 0 ? "Registry is empty." : "No skills match."}</p>
-      ) : (
-        <ul className="cards">
-          {visible.map((s) => {
-            const st = stale[s.name];
-            return (
-              <li key={`${s.author}/${s.name}/${s.version}`} className="card">
-                <div className="card-head">
-                  <strong>{s.name}</strong>
-                  <span className="version">{s.version}</span>
-                  {s.author && <span className="muted">by {s.author}</span>}
-                  {s.validation && (
-                    <span className={`pill ${s.validation.valid ? "on" : "err"}`}>
-                      {s.validation.valid ? "valid" : `${s.validation.errors} errors`}
-                    </span>
-                  )}
-                  {s.security && (
-                    <span className={`pill ${s.security.clean ? "on" : "err"}`}>
-                      {s.security.clean ? "clean" : `${s.security.issues} issues`}
-                    </span>
-                  )}
-                  {st && st.status !== "fresh" && st.status !== "unknown" && (
-                    <span className={`pill ${st.status === "overdue" ? "err" : "warn"}`}>
-                      review {st.status.replace("_", " ")}
-                    </span>
-                  )}
+      <div className="px-6 py-5">
+        <p dir="rtl" className="mb-3 truncate text-left font-mono text-[11px] text-ink-3"><bdi>{settings.registry}</bdi></p>
+        {skills.length === 0 && !loading ? (
+          <Empty icon={<Library size={36} strokeWidth={1.25} />} title="Registry is empty" hint="Publish a skill with skill_registry.py publish <skill-dir>." />
+        ) : visible.length === 0 ? (
+          <Empty icon={<Search size={36} strokeWidth={1.25} />} title="No skills match" action={<Button onClick={() => { setQuery(""); setTagFilter(null); }}>Clear filters</Button>} />
+        ) : (
+          <ul className="overflow-hidden rounded-lg border border-line bg-surface">
+            {visible.map((s) => (
+              <li
+                key={`${s.author}/${s.name}/${s.version}`}
+                onClick={() => onOpen({ name: s.name, version: s.version, description: s.description, author: s.author, tags: s.tags, dir: `${settings.registry}/${s.path}`, pills: pillsFor(s) })}
+                className="group flex cursor-pointer items-start gap-4 border-b border-line px-4 py-3 last:border-b-0 hover:bg-surface-2/50"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium">{s.name}</span>
+                    <span className="font-mono text-[12px] text-ink-3">{s.version}</span>
+                    {s.author && <span className="text-[12px] text-ink-3">by {s.author}</span>}
+                    {pillsFor(s)?.map((p) => <Pill key={p.text} tone={p.tone}>{p.text}</Pill>)}
+                  </div>
+                  <p className="mt-0.5 line-clamp-2 text-ink-2">{s.description}</p>
+                  <div className="mt-1.5"><TagChips tags={s.tags} onPick={setTagFilter} /></div>
                 </div>
-                <p className="desc">{s.description}</p>
-                <div className="meta">
-                  <TagChips tags={s.tags} onPick={setTag} />
-                </div>
-                <div className="actions">
-                  <button className="primary" disabled={busy !== null} onClick={() => install(s.name)}>
-                    {busy === s.name ? "Installing…" : "Install"}
-                  </button>
+                <div className="shrink-0 pt-0.5" onClick={(e) => e.stopPropagation()}>
+                  <Button size="sm" variant="primary" loading={busy === s.name} disabled={busy !== null} onClick={() => install(s.name)}>
+                    <Download size={13} /> Install
+                  </Button>
                 </div>
               </li>
-            );
-          })}
-        </ul>
-      )}
-    </section>
+            ))}
+          </ul>
+        )}
+      </div>
+    </>
   );
 }

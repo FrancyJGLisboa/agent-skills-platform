@@ -44,9 +44,17 @@ Output lands under `src-tauri/target/release/bundle/`.
 
 ```
 src/lib/cli.ts           typed wrapper over the Rust bridge, one function per CLI command
-src/components/          Installed, Registry, Trash, SettingsView, TagFilter
-src-tauri/src/lib.rs     three commands: registry(args), platforms(), default_scripts_dir()
+src/components/ui.tsx    Button, Input, Select, Pill, Switch, Field, PageHeader, Empty, TagChips, PathText
+src/components/          Sidebar, Installed, Registry, Trash, SettingsView, SkillDrawer
+src/index.css            Tailwind import, colour tokens (light + dark), SKILL.md prose styles
+src-tauri/src/lib.rs     registry(args), platforms(), default_scripts_dir(), skill_files(dir), skill_file(dir, file)
 ```
+
+Styling is Tailwind 4 with a small token set in `src/index.css`; icons are
+Lucide; toasts are Sonner; `SKILL.md` renders through react-markdown. The two
+file commands only read inside a skill directory the UI already knows about,
+capped at 512 KiB per file, so the detail drawer can show the file tree and
+any text file without a second code path.
 
 Settings persist in the WebView's `localStorage`; the installed-skill ledger,
 parked disabled skills, and the recycle bin live in `~/.agent-skills/` (or

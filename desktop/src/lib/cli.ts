@@ -1,6 +1,7 @@
 // Typed wrapper over the Rust `registry` bridge. Every call is one
 // `skill_registry.py <args> --json` invocation; nothing is cached here.
 import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
 
 export interface Settings {
   python: string;
@@ -148,3 +149,27 @@ export const api = {
   purge: (s: Settings, olderThan: number) =>
     run<TrashItem[]>(s, ["purge", "--older-than", String(olderThan)]).then((r) => expectOk(r)),
 };
+
+export interface FileEntry {
+  path: string;
+  size: number;
+}
+
+export async function skillFiles(dir: string): Promise<FileEntry[]> {
+  return invoke<FileEntry[]>("skill_files", { dir });
+}
+
+export async function skillFile(dir: string, file: string): Promise<string> {
+  return invoke<string>("skill_file", { dir, file });
+}
+
+/** Native folder picker; resolves to null when the user cancels. */
+export async function pickDirectory(title: string, defaultPath?: string): Promise<string | null> {
+  const picked = await open({ directory: true, multiple: false, title, defaultPath: defaultPath || undefined });
+  return typeof picked === "string" ? picked : null;
+}
+
+/** Registry `info` for one skill — the detail drawer's metadata source. */
+export async function registryInfo(s: Settings, name: string): Promise<RegistrySkill> {
+  return run<RegistrySkill>(s, ["info", name, "--registry", s.registry]).then((r) => expectOk(r));
+}
