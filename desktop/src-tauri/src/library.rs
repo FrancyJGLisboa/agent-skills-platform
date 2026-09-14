@@ -221,7 +221,9 @@ mod tests {
         git(&["commit", "-q", "-am", "two"]);
         let second = sync(&url).unwrap();
         assert_ne!(first.commit, second.commit);
-        assert_eq!(std::fs::read_to_string(Path::new(&second.path).join("registry.json")).unwrap(), "{\"skills\": [1]}\n");
+        // Git's autocrlf on Windows checks the file out with \r\n; compare content, not line endings.
+        let synced = std::fs::read_to_string(Path::new(&second.path).join("registry.json")).unwrap().replace("\r\n", "\n");
+        assert_eq!(synced, "{\"skills\": [1]}\n");
         assert_eq!(status(&url).unwrap().unwrap().commit, second.commit);
 
         std::env::remove_var("AGENT_SKILLS_HOME");
