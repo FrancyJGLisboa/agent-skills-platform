@@ -27,11 +27,14 @@ with read access — it goes into your system keychain, not the app.
 **Pick where skills go.** "Install skills for" defaults to GitHub Copilot
 (VS Code); tools found on your computer are listed first. Click **Save**.
 
-**Install.** Open **Library**, click a skill to read its `SKILL.md` and browse
-its files, then click **Install**. Restart VS Code and the skill is available
-in Copilot Chat agent mode.
+**Install.** Open **Library** and click a skill. The detail view opens with
+**Use it when…** — the question the skill answers, example requests that
+trigger it, requests it is not for, its risk tier, and whether its
+verification evidence is current — followed by its `SKILL.md` and files. Click
+**Install**, restart VS Code, and the skill is available in Copilot Chat agent
+mode.
 
-![Skill detail drawer showing the file tree and rendered SKILL.md](assets/desktop/drawer.png)
+![Skill detail drawer: "Use it when…" block with example requests, verification and risk pills, then the rendered SKILL.md](assets/desktop/drawer.png)
 
 **Keep it tidy.** **Installed** lists what you have; the switch on each row
 turns a skill off without removing it, and **Update** appears when the library

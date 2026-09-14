@@ -21,6 +21,10 @@ to semantic versioning where practical.
   first; screens are named Installed / Library / Removed; a `desktop-v*` tag builds
   signed installers for macOS, Windows, and Linux and the app updates itself from the
   published release. `skill_registry.py` gains a `platforms` subcommand.
+- **Desktop app "Use it when…"**: the skill detail view leads with what
+  `discovery.json` says about when a skill fires — the question it answers, example
+  requests that should and should not trigger it, trigger, decisions, success measure,
+  risk tier — and a verified/failed pill read from `VERIFICATION.md`.
 - **Desktop app redesign**: sidebar navigation with counts, Tailwind 4 tokens for light
   and dark, Lucide icons, Sonner toasts, an enable/disable switch per installed skill
   with hover-revealed actions, native folder pickers in Settings, and a skill detail

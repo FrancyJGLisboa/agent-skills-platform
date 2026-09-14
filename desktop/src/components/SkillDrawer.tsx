@@ -6,6 +6,7 @@ import { ChevronRight, File, FileText, X } from "lucide-react";
 import { clsx } from "clsx";
 import { FileEntry, skillFile, skillFiles } from "../lib/cli";
 import { Pill, TagChips } from "./ui";
+import { UseItWhen } from "./UseItWhen";
 
 export interface DrawerSkill {
   name: string;
@@ -126,6 +127,7 @@ export function SkillDrawer({ skill, onClose, onTag }: Props) {
           </nav>
 
           <div className="min-w-0 flex-1 overflow-y-auto px-6 py-5 selectable">
+            {selected === "SKILL.md" && <UseItWhen dir={skill.dir} />}
             <div className="mb-3 font-mono text-[11px] text-ink-3">{selected}</div>
             {error ? (
               <p className="text-err">{error}</p>
