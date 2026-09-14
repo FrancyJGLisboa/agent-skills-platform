@@ -65,15 +65,15 @@ export function Trash({ settings, onRestored, onCount }: Props) {
 
   return (
     <>
-      <PageHeader title="Recycle bin" count={items.length}>
+      <PageHeader title="Removed" count={items.length}>
         <Button disabled={busy !== null || items.length === 0} onClick={() => purge(TTL_DAYS)}>Purge older than {TTL_DAYS} days</Button>
-        <Button variant="danger" disabled={busy !== null || items.length === 0} onClick={() => purge(0)}><Trash2 size={14} /> Empty bin</Button>
+        <Button variant="danger" disabled={busy !== null || items.length === 0} onClick={() => purge(0)}><Trash2 size={14} /> Delete all</Button>
         <Button variant="ghost" onClick={refresh} aria-label="Refresh"><RefreshCw size={14} /></Button>
       </PageHeader>
 
       <div className="px-6 py-5">
         {items.length === 0 ? (
-          <Empty icon={<Trash2 size={36} strokeWidth={1.25} />} title="Recycle bin is empty" hint={`Uninstalled and removed skills stay here for ${TTL_DAYS} days.`} />
+          <Empty icon={<Trash2 size={36} strokeWidth={1.25} />} title="Nothing removed" hint={`Skills you uninstall stay here for ${TTL_DAYS} days in case you want them back.`} />
         ) : (
           <ul className="overflow-hidden rounded-lg border border-line bg-surface">
             {items.map((item) => {

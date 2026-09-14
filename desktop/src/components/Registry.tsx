@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Download, Library, RefreshCw, Search } from "lucide-react";
-import { api, RegistrySkill, Settings, StaleResult } from "../lib/cli";
+import { api, library, RegistrySkill, Settings, StaleResult } from "../lib/cli";
 import { Button, Empty, Input, PageHeader, Pill, Select, TagChips } from "./ui";
 import { DrawerSkill } from "./SkillDrawer";
 
@@ -25,10 +25,14 @@ export function Registry({ settings, onOpen, onInstalled, onCount, tagFilter, se
   const [busy, setBusy] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (sync = false) => {
     if (!settings.registry) { setLoading(false); return; }
     setLoading(true);
     try {
+      if (sync && settings.libraryUrl) {
+        const info = await library.sync(settings.libraryUrl);
+        toast.success(`Library up to date`, { description: `${info.branch} @ ${info.commit}` });
+      }
       const [list, staleness] = await Promise.all([api.registryList(settings), api.stale(settings)]);
       setSkills(list);
       onCount(list.length);
@@ -93,15 +97,15 @@ export function Registry({ settings, onOpen, onInstalled, onCount, tagFilter, se
   if (!settings.registry) {
     return (
       <>
-        <PageHeader title="Registry" />
-        <Empty icon={<Library size={36} strokeWidth={1.25} />} title="No registry configured" hint="Point the app at a directory containing registry.json to browse and install skills." action={<Button variant="primary" onClick={goToSettings}>Open settings</Button>} />
+        <PageHeader title="Library" />
+        <Empty icon={<Library size={36} strokeWidth={1.25} />} title="No team library yet" hint="Paste the library link from your admin in Settings to browse and install skills." action={<Button variant="primary" onClick={goToSettings}>Open settings</Button>} />
       </>
     );
   }
 
   return (
     <>
-      <PageHeader title="Registry" count={skills.length}>
+      <PageHeader title="Library" count={skills.length}>
         <div className="relative">
           <Search size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-3" />
           <Input placeholder="Search skills…" value={query} onChange={(e) => setQuery(e.target.value)} className="w-56 pl-8" />
@@ -112,22 +116,24 @@ export function Registry({ settings, onOpen, onInstalled, onCount, tagFilter, se
             {tags.map((t) => <option key={t} value={t}>{t}</option>)}
           </Select>
         )}
-        <Select value={scope} onChange={(e) => setScope(e.target.value as Scope)} title="Install scope">
-          <option value="user">User · {settings.platform}</option>
-          <option value="project" disabled={!settings.projectDir}>Project{settings.projectDir ? "" : " (set a project dir)"}</option>
-        </Select>
+        {settings.projectDir && (
+          <Select value={scope} onChange={(e) => setScope(e.target.value as Scope)} title="Install scope">
+            <option value="user">For me</option>
+            <option value="project">This project</option>
+          </Select>
+        )}
         {tagFilter && (
           <Button variant="primary" loading={busy === `tag:${tagFilter}`} disabled={busy !== null} onClick={installTag}>
             <Download size={14} /> Install all “{tagFilter}” ({visible.length})
           </Button>
         )}
-        <Button variant="ghost" onClick={refresh} disabled={loading} aria-label="Refresh"><RefreshCw size={14} className={loading ? "animate-spin" : ""} /></Button>
+        <Button variant="ghost" onClick={() => refresh(true)} disabled={loading} aria-label="Refresh" title={settings.libraryUrl ? "Check the team library for updates" : "Reload"}><RefreshCw size={14} className={loading ? "animate-spin" : ""} /></Button>
       </PageHeader>
 
       <div className="px-6 py-5">
-        <p dir="rtl" className="mb-3 truncate text-left font-mono text-[11px] text-ink-3"><bdi>{settings.registry}</bdi></p>
+        <p dir="rtl" className="mb-3 truncate text-left font-mono text-[11px] text-ink-3"><bdi>{settings.libraryUrl || settings.registry}</bdi></p>
         {skills.length === 0 && !loading ? (
-          <Empty icon={<Library size={36} strokeWidth={1.25} />} title="Registry is empty" hint="Publish a skill with skill_registry.py publish <skill-dir>." />
+          <Empty icon={<Library size={36} strokeWidth={1.25} />} title="The library is empty" hint="Nothing has been published to it yet." />
         ) : visible.length === 0 ? (
           <Empty icon={<Search size={36} strokeWidth={1.25} />} title="No skills match" action={<Button onClick={() => { setQuery(""); setTagFilter(null); }}>Clear filters</Button>} />
         ) : (

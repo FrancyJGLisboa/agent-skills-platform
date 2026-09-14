@@ -11,8 +11,8 @@ interface Props {
 
 const ITEMS: { id: Tab; label: string; icon: typeof Boxes }[] = [
   { id: "installed", label: "Installed", icon: Boxes },
-  { id: "registry", label: "Registry", icon: Library },
-  { id: "trash", label: "Recycle bin", icon: Trash2 },
+  { id: "registry", label: "Library", icon: Library },
+  { id: "trash", label: "Removed", icon: Trash2 },
 ];
 
 export function Sidebar({ tab, setTab, counts, ready }: Props) {
