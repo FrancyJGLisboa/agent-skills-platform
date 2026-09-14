@@ -211,7 +211,8 @@ mod tests {
         git(&["commit", "-q", "-m", "one"]);
 
         std::env::set_var("AGENT_SKILLS_HOME", tmp.join("home"));
-        let url = format!("file://{}", upstream.display());
+        // from_file_path yields file:///C:/... on Windows and file:///tmp/... elsewhere.
+        let url = url::Url::from_file_path(upstream.canonicalize().unwrap()).unwrap().to_string();
         let first = sync(&url).unwrap();
         assert!(has_registry(&first.path));
         assert_eq!(first.branch, "main");
