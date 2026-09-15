@@ -158,7 +158,9 @@
     requirements confirm that every expected result is tested and every predictable
     multi-step workflow has one reliable entry point. Four checks—specification,
     pipeline, security, and evaluation schema—run in parallel. Finally, a representative
-    run proves that the skill produces a useful result.</p>
+    run proves that the skill produces a useful result. After intake, the marketplace can
+    run the skill inside each installed agent runtime and certify only what an agent
+    actually discovered and followed (<a href="CALIPER.html">agent-run reliability</a>).</p>
 
     <aside class="callout">
       <strong>Maintenance retains lessons without changing live behavior.</strong>
@@ -314,7 +316,7 @@ gh repo create acme/team-skills --private --source . --push</code></pre>
     <ol class="capabilities" aria-label="Five product capabilities">
       <li><span>01</span><h3>Capture</h3><p>Inspect evidence, expose competing meanings, and ask one bounded human decision at a time before compiling a contract.</p></li>
       <li><span>02</span><h3>Compile</h3><p>Package portable instructions, deterministic helpers, and environment contracts.</p></li>
-      <li><span>03</span><h3>Prove</h3><p>Bind evals, safety checks, compatibility, and representative outcomes to the release.</p></li>
+      <li><span>03</span><h3>Prove</h3><p>Bind evals, safety checks, compatibility, agent-run reliability, and representative outcomes to the release.</p></li>
       <li><span>04</span><h3>Govern</h3><p>Enforce ownership, semantic freshness, approval, versioning, rollback, quarantine, and retirement.</p></li>
       <li><span>05</span><h3>Deliver + learn</h3><p>Install exact versions and improve them from consented, privacy-safe usage evidence.</p></li>
     </ol>
@@ -329,6 +331,7 @@ gh repo create acme/team-skills --private --source . --push</code></pre>
       <div class="operator-proof" aria-label="Organizational operator checks">
         <div><strong>Portfolio proof</strong><code>python3 scripts/team_marketplace.py portfolio-check --marketplace ./acme-skills</code><span>Tests positive routing, non-triggering, and coexistence across published skills.</span></div>
         <div><strong>Department proof</strong><code>python3 scripts/team_marketplace.py onboarding-report --marketplace ./acme-skills</code><span>Reports ownership, separation of duties, readiness, and cross-team reuse evidence.</span></div>
+        <div><strong>Runtime proof</strong><code>python3 scripts/team_marketplace.py reliability report-skill --department finance --marketplace ./acme-skills</code><span>Runs the skill inside each installed agent runtime and certifies only what the agent discovered and followed.</span></div>
       </div>
       <p><a class="text-link" href="TEAM_MARKETPLACE.html">Open the complete command timeline</a></p>
     </div>
@@ -365,6 +368,7 @@ gh repo create acme/team-skills --private --source . --push</code></pre>
       <a href="PRODUCT_SCOPE.html">Product scope and boundaries</a>
       <a href="WORKER_RUNBOOK.html">Worker runbook</a>
       <a href="TEAM_MARKETPLACE.html">Team marketplace timeline</a>
+      <a href="CALIPER.html">Agent-run reliability (Caliper)</a>
       <a href="GITLAB_TEAM_REGISTRY.html">GitLab marketplace backend</a>
       <a href="INSTALL.html">All 17 platforms</a>
     </div>
