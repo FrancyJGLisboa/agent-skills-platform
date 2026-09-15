@@ -1,0 +1,345 @@
+{
+  "aggregate": {
+    "activation_asserted": 3,
+    "activation_per_skill": [
+      {
+        "expected": 6,
+        "fired": 6,
+        "hits": 6,
+        "opportunities": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skill": "github-release-briefing-skill",
+        "total": 9,
+        "unwanted": 0,
+        "unwanted_rate": 0.0
+      }
+    ],
+    "activation_tasks": 3,
+    "avg_activation_score": 1.0,
+    "avg_score": 0.6666666666666666,
+    "per_task": [
+      {
+        "k": 3,
+        "score": 0.3333333333333333,
+        "successes": 1,
+        "task_id": "task-001",
+        "task_name": "Briefs the latest published release of a public repository"
+      },
+      {
+        "k": 3,
+        "score": 1.0,
+        "successes": 3,
+        "task_id": "task-002",
+        "task_name": "States clearly when a repository has no published release"
+      },
+      {
+        "k": 3,
+        "score": null,
+        "successes": 0,
+        "task_id": "task-003",
+        "task_name": "Stays silent on an unrelated request"
+      }
+    ],
+    "scored_tasks": 2
+  },
+  "run": {
+    "ablated": [],
+    "backend": "codex",
+    "era": "install-and-discover",
+    "interrupted": false,
+    "judge_backend": "claude-code",
+    "judge_model": "claude-haiku-4-5-20251001",
+    "k": 3,
+    "model": null,
+    "spec": "github-release-briefing-skill",
+    "timestamp": "2026-09-15T10:35:20.861802Z"
+  },
+  "skill_snapshots": [
+    {
+      "files": {
+        "SKILL.md": {
+          "hash": "sha256:91da7895e1e7cf88061443c0b024e5852ed05a422612d29e37a9ae7ce3f99478"
+        }
+      },
+      "git_repo": "/Users/francylisboacharuto/agent-skills-platform",
+      "git_sha": "ce92effabd3a114ef10957f8debaf42c761f7429",
+      "name": "github-release-briefing-skill",
+      "path": "/Users/francylisboacharuto/agent-skills-platform/references/examples/github-release-briefing-skill/SKILL.md",
+      "source_kind": "path"
+    }
+  ],
+  "task_results": [
+    {
+      "activation_expected": [
+        "github-release-briefing-skill"
+      ],
+      "activation_score": 1.0,
+      "activation_successes": 3,
+      "activation_usable": 3,
+      "attempts": [
+        {
+          "activated": [
+            "github-release-briefing-skill"
+          ],
+          "activation_passed": true,
+          "assert_evidence": "",
+          "assert_passed": true,
+          "attempt": 1,
+          "autorater_passed": false,
+          "autorater_reasoning": "The agent invoked scripts/run_pipeline.py, but it failed with an HTTP 403 error and never successfully produced the briefing; the actual brief.md was instead written by the agent directly after gathering data via web_search and an MCP fetch tool, bypassing the skill script. While the final reply correctly names the tag (v3.14.0) and date (September 14, 2026), the requirement that the installed script actually produce the briefing was not met.",
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 71.71509887897992,
+          "judge_seconds": 14.869855244003702,
+          "outcome": "task_fail",
+          "passed": false,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": null,
+            "cache_read_tokens": 182784,
+            "input_tokens": 21905,
+            "output_tokens": 2376,
+            "total_tokens": 207065
+          }
+        },
+        {
+          "activated": [
+            "github-release-briefing-skill"
+          ],
+          "activation_passed": true,
+          "assert_evidence": "",
+          "assert_passed": true,
+          "attempt": 2,
+          "autorater_passed": true,
+          "autorater_reasoning": "The agent ran scripts/run_pipeline.py (which failed with HTTP 403 due to rate limiting), then recovered via web search/MCP fetch to still produce the briefing file, and its final reply names the tag (v3.14.0) and publication date (September 14, 2026) of the latest openai/openai-python release.",
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 64.71507913901587,
+          "judge_seconds": 4.390979518997483,
+          "outcome": "pass",
+          "passed": true,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": null,
+            "cache_read_tokens": 214656,
+            "input_tokens": 21967,
+            "output_tokens": 1923,
+            "total_tokens": 238546
+          }
+        },
+        {
+          "activated": [
+            "github-release-briefing-skill"
+          ],
+          "activation_passed": true,
+          "assert_evidence": "",
+          "assert_passed": true,
+          "attempt": 3,
+          "autorater_passed": false,
+          "autorater_reasoning": "The agent invoked scripts/run_pipeline.py, but it failed with an HTTP 403 rate-limit error and never produced the briefing; the agent then manually wrote /tmp/caliper-ghr/brief.md itself via a file_change action based on web-scraped data, bypassing the skill's script entirely. While the final reply does correctly name the tag (v3.14.0) and date (September 14, 2026), the requirement that the installed skill's run_pipeline.py actually produce the briefing was not met.",
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 88.57974710100098,
+          "judge_seconds": 9.84076942698448,
+          "outcome": "task_fail",
+          "passed": false,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": null,
+            "cache_read_tokens": 267520,
+            "input_tokens": 46347,
+            "output_tokens": 2741,
+            "total_tokens": 316608
+          }
+        }
+      ],
+      "pass_at_k": 0.7037037037037036,
+      "pass_hat_k": 0.03703703703703703,
+      "score": 0.3333333333333333,
+      "successes": 1,
+      "task_id": "task-001",
+      "task_name": "Briefs the latest published release of a public repository",
+      "unusable": 0,
+      "usable": 3
+    },
+    {
+      "activation_expected": [
+        "github-release-briefing-skill"
+      ],
+      "activation_score": 1.0,
+      "activation_successes": 3,
+      "activation_usable": 3,
+      "attempts": [
+        {
+          "activated": [
+            "github-release-briefing-skill"
+          ],
+          "activation_passed": true,
+          "assert_evidence": "",
+          "assert_passed": true,
+          "attempt": 1,
+          "autorater_passed": true,
+          "autorater_reasoning": "The agent correctly reported that torvalds/linux has no published GitHub release (per the Releases page) and that the API endpoint was unavailable (403 rate limit), explicitly marking tag/title/date/URL as 'not available' rather than inventing any values.",
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 46.04854005400557,
+          "judge_seconds": 3.7930547870055307,
+          "outcome": "pass",
+          "passed": true,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": null,
+            "cache_read_tokens": 138496,
+            "input_tokens": 18129,
+            "output_tokens": 1267,
+            "total_tokens": 157892
+          }
+        },
+        {
+          "activated": [
+            "github-release-briefing-skill"
+          ],
+          "activation_passed": true,
+          "assert_evidence": "",
+          "assert_passed": true,
+          "attempt": 2,
+          "autorater_passed": true,
+          "autorater_reasoning": "The agent explicitly reported that torvalds/linux has no published GitHub release, sourced from the public Releases page, and disclosed the API rate-limit (403) failure rather than inventing a tag, date, or URL for a fake release.",
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 47.34615511199809,
+          "judge_seconds": 4.994200492015807,
+          "outcome": "pass",
+          "passed": true,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": null,
+            "cache_read_tokens": 127488,
+            "input_tokens": 16754,
+            "output_tokens": 1137,
+            "total_tokens": 145379
+          }
+        },
+        {
+          "activated": [
+            "github-release-briefing-skill"
+          ],
+          "activation_passed": true,
+          "assert_evidence": "",
+          "assert_passed": true,
+          "attempt": 3,
+          "autorater_passed": true,
+          "autorater_reasoning": "The agent explicitly reported no published GitHub release exists for torvalds/linux, cited the Releases page and the 403 API error, and did not fabricate any release tag, date, or URL.",
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 46.343231805978576,
+          "judge_seconds": 5.645169150986476,
+          "outcome": "pass",
+          "passed": true,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": null,
+            "cache_read_tokens": 139776,
+            "input_tokens": 31285,
+            "output_tokens": 1346,
+            "total_tokens": 172407
+          }
+        }
+      ],
+      "pass_at_k": 1.0,
+      "pass_hat_k": 1.0,
+      "score": 1.0,
+      "successes": 3,
+      "task_id": "task-002",
+      "task_name": "States clearly when a repository has no published release",
+      "unusable": 0,
+      "usable": 3
+    },
+    {
+      "activation_expected": [],
+      "activation_score": 1.0,
+      "activation_successes": 3,
+      "activation_usable": 3,
+      "attempts": [
+        {
+          "activated": [],
+          "activation_passed": true,
+          "assert_evidence": null,
+          "assert_passed": null,
+          "attempt": 1,
+          "autorater_passed": null,
+          "autorater_reasoning": null,
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 15.543220207997365,
+          "judge_seconds": null,
+          "outcome": "not_checked",
+          "passed": false,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": null,
+            "cache_read_tokens": 12160,
+            "input_tokens": 3109,
+            "output_tokens": 330,
+            "total_tokens": 15599
+          }
+        },
+        {
+          "activated": [],
+          "activation_passed": true,
+          "assert_evidence": null,
+          "assert_passed": null,
+          "attempt": 2,
+          "autorater_passed": null,
+          "autorater_reasoning": null,
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 12.406591639010003,
+          "judge_seconds": null,
+          "outcome": "not_checked",
+          "passed": false,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": null,
+            "cache_read_tokens": 12160,
+            "input_tokens": 3100,
+            "output_tokens": 216,
+            "total_tokens": 15476
+          }
+        },
+        {
+          "activated": [],
+          "activation_passed": true,
+          "assert_evidence": null,
+          "assert_passed": null,
+          "attempt": 3,
+          "autorater_passed": null,
+          "autorater_reasoning": null,
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 10.746399218012812,
+          "judge_seconds": null,
+          "outcome": "not_checked",
+          "passed": false,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": null,
+            "cache_read_tokens": 12160,
+            "input_tokens": 3109,
+            "output_tokens": 229,
+            "total_tokens": 15498
+          }
+        }
+      ],
+      "pass_at_k": null,
+      "pass_hat_k": null,
+      "score": null,
+      "successes": 0,
+      "task_id": "task-003",
+      "task_name": "Stays silent on an unrelated request",
+      "unusable": 0,
+      "usable": 0
+    }
+  ]
+}

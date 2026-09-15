@@ -28,7 +28,13 @@ def content_fingerprint(skill_dir: Path) -> str:
     files = [skill_dir / "SKILL.md"]
     for directory in (skill_dir / "scripts", skill_dir / "evals"):
         if directory.is_dir():
-            files.extend(path for path in directory.rglob("*") if path.is_file() and "__pycache__" not in path.parts)
+            files.extend(
+                path for path in directory.rglob("*")
+                if path.is_file() and "__pycache__" not in path.parts
+                # Tool caches such as Caliper's `.caliper/results/` sit beside a spec
+                # and change on every run; they are not behavior-defining files.
+                and not any(part.startswith(".") for part in path.relative_to(skill_dir).parts)
+            )
     digest = hashlib.sha256()
     for path in sorted(files):
         relative = path.relative_to(skill_dir).as_posix()

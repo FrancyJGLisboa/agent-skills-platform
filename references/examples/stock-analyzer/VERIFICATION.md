@@ -1,13 +1,13 @@
 # Verification: stock-analyzer
 
-<!-- agent-skill-verification: {"clean": true, "commit": "0d0caf79751d9d7979edb8a7e70b70d04a4ffed3", "fingerprint": "18981433665cf2b8202efe91f5ed4194c39b62ce4863ace7ea17927587e292b6", "version": ""} -->
+<!-- agent-skill-verification: {"clean": true, "commit": "536c51f5ee2e2a39ec55b28e511095cbf0493893", "fingerprint": "3c2cf8f97afdb9a4d16aee2f8373b3fd85c24bcd7b89cbda5b4e64b7243f82c2", "version": ""} -->
 
-Generated: 2026-09-03T11:47:37Z
+Generated: 2026-09-15T10:36:18Z
 
 ## Release evidence
 
 - Run type: representative
-- Recorded execution environments: claude-code
+- Recorded execution environments: claude-code, codex
 - Cross-environment compatibility: not established by this report
 - Eval rollout: 6 passed, 0 failed, 0 errored, 0 regressed
 

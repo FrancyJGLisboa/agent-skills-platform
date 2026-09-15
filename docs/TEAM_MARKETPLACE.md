@@ -411,6 +411,7 @@ the new pin.
 | Once | `team_marketplace.py init` | Creates the governed repository scaffold. |
 | Every intake | `team_marketplace.py add` | Gates and copies one skill into a department and bundle. |
 | Every new version | `team_marketplace.py update` | Re-gates a strictly newer version and preserves its bundles. |
+| After intake, per version | `team_marketplace.py reliability` | Runs the skill inside each installed agent runtime and certifies what passes. |
 | Before PR/release | `team_marketplace.py check` | Verifies the complete marketplace state. |
 | After approved merge | `team_marketplace.py release --tag vX.Y.Z` | Publishes an immutable approved release. |
 | Deployment/update/rollback | `team_marketplace.py install --pin vX.Y.Z` | Installs exact bundled skills for Copilot. |
@@ -662,3 +663,34 @@ and adapted artifact plans therefore stay aligned with the factory installers.
 `check --release` blocks every declared platform that lacks passing certification
 for the exact skill version. Updating a skill clears older certification evidence,
 so certification must be repeated before the next release.
+
+### Agent-run reliability evidence (Caliper)
+
+Certification evidence is only as good as the checks behind it. For `claude-code` and
+`codex`, the operator's agent lets [Caliper](CALIPER.md) earn those checks: the skill is
+installed in a fresh HOME, discovered from its description, followed rather than
+improvised, and passes `k` times. One command measures every declared platform whose
+agent CLI is installed on the operator's machine and certifies what passes:
+
+```bash
+python3 scripts/team_marketplace.py reliability report-skill \
+  --department finance --marketplace ./acme-skills
+```
+
+It runs the governed copy's `evals/caliper/<skill>.eval.yaml` once per platform
+(`--k 3`, `--timeout 180`, one attempt at a time, judged by the other vendor when both
+CLIs are present), binds each run to the released `SKILL.md` hash and commit through
+`scripts/caliper_evidence.py`, and calls `certify` for every platform that clears the
+thresholds. The JSON report names each platform as `certified`, `refused` (with the
+failing threshold), `failed` (Caliper did not produce a run), or `skipped` (no Caliper
+backend, or its CLI is absent). GitHub Copilot and the other platforms keep the
+representative-run attestation as their evidence. `--no-certify` measures without
+writing; `--platform` limits the run; raw and pruned runs land under
+`<marketplace>/.caliper/runs/`.
+
+Stored records keep only check names, so each name states its threshold and the observed
+value (`caliper:success_rate>=0.90(observed=1.00)`). To make agent-run evidence a release
+condition, add `--require-reliability` to `check --release`: every `claude-code` or
+`codex` certification must then carry `caliper:*` checks, so a hand-written evidence file
+no longer certifies those platforms. Runs are local to the operator's machine; CI
+validates spec syntax only.

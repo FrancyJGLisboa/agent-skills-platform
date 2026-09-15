@@ -51,6 +51,9 @@ from marketplace_metrics import (  # noqa: E402
 from marketplace_distribution import (  # noqa: E402
     DistributionError, build_install_plan, certify_compatibility,
 )
+from marketplace_reliability import (  # noqa: E402
+    ReliabilityError, reliability_check_failures, run_reliability,
+)
 from platforms import normalize_platform_name  # noqa: E402
 from generate_verification import render_report, verification_errors  # noqa: E402
 
@@ -70,7 +73,7 @@ SCAFFOLD_SCRIPTS = (
     "marketplace_trust.py", "marketplace_health.py", "marketplace_discovery.py",
     "marketplace_metrics.py",
     "marketplace_distribution.py", "platforms.py", "review_staleness.py",
-    "generate_verification.py",
+    "generate_verification.py", "marketplace_reliability.py", "caliper_evidence.py",
 )
 ATTESTATION_FILE = "marketplace-attestation.json"
 
@@ -979,8 +982,13 @@ def recreate_skill(root: Path, skill: Path, department: str, reason: str) -> dic
 
 def check_marketplace(
     root: Path, *, refresh: bool = True, require_published: bool = False,
+    require_reliability: bool = False,
 ) -> list[str]:
-    """Return every release-blocking inconsistency; an empty list is releasable."""
+    """Return every release-blocking inconsistency; an empty list is releasable.
+
+    ``require_reliability`` additionally demands agent-run (Caliper) checks behind every
+    certification of a platform Caliper can drive; see marketplace_reliability.py.
+    """
     data = load_manifest(root)
     errors: list[str] = []
     if require_published and not data.get("skills"):
@@ -1061,6 +1069,8 @@ def check_marketplace(
                         f"{identity[1]}: release requires current-version compatibility "
                         f"certification for: {', '.join(missing)}"
                     )
+            if require_reliability:
+                errors.extend(f"{identity[1]}: {failure}" for failure in reliability_check_failures(entry))
         commit = entry.get("provenance", {}).get("commit_sha", "")
         errors.extend(
             f"{identity[1]}: {error}" for error in validate_attestation(
@@ -1357,7 +1367,8 @@ def generate_repository_files(root: Path, data: dict[str, Any]) -> None:
                      "marketplace_discovery.py", "marketplace_metrics.py",
                      "marketplace_distribution.py", "platforms.py",
                      "generate_verification.py", "review_staleness.py",
-                     "schema_drift.py", "dependency_health.py"):
+                     "schema_drift.py", "dependency_health.py",
+                     "marketplace_reliability.py", "caliper_evidence.py"):
         source = factory_scripts / filename
         if source.is_file():
             shutil.copy2(source, support_scripts / filename)
@@ -1822,6 +1833,46 @@ def certify_skill(
     return stored
 
 
+def reliability_skill(
+    root: Path, department: str, name: str, *, platforms: list[str] | None = None,
+    k: int = 3, timeout: int = 180, results_dir: Path | None = None, certify: bool = True,
+    thresholds: Any = None, which: Any = None, runner: Any = None,
+) -> dict[str, Any]:
+    """Run Caliper on the governed copy for each measurable declared platform and certify what passes."""
+    data = load_manifest(root)
+    entry = _find_skill(data, department, name)
+    skill_dir = _contained(root, str(entry["path"]))
+    declared = list(
+        entry.get("compatibility", {}).get("declared")
+        or entry.get("discovery", {}).get("compatibility", {}).get("declared", [])
+    )
+    if not declared:
+        raise MarketplaceError(f"{name}: no declared platforms to measure")
+    options: dict[str, Any] = {
+        "platforms": platforms, "k": k, "timeout": timeout, "skill_version": str(entry.get("version", "")),
+    }
+    for key, value in (("thresholds", thresholds), ("which", which), ("runner", runner)):
+        if value is not None:
+            options[key] = value
+    try:
+        report = run_reliability(
+            skill_dir, declared, results_dir=results_dir or (root / ".caliper" / "runs"), **options,
+        )
+    except ReliabilityError as exc:
+        raise MarketplaceError(str(exc)) from exc
+    for row in report["platforms"]:
+        if row.get("status") != "certifiable":
+            continue
+        evidence = row.pop("evidence")
+        if certify:
+            record = certify_skill(root, department, name, row["platform"], evidence)
+            row.update({"status": "certified", "checks": record["checks"]})
+        else:
+            row["checks"] = [check["name"] for check in evidence["checks"]]
+    report["certified"] = sorted(row["platform"] for row in report["platforms"] if row["status"] == "certified")
+    return report
+
+
 def transition_skill(root: Path, department: str, name: str, target: str) -> str:
     """Apply one policy-authorized lifecycle transition and regenerate the catalog."""
     data = load_manifest(root)
@@ -1936,6 +1987,10 @@ def build_parser() -> argparse.ArgumentParser:
     check = sub.add_parser("check")
     check.add_argument("--marketplace", default=".")
     check.add_argument("--release", action="store_true", help="require committed published lifecycle")
+    check.add_argument(
+        "--require-reliability", action="store_true",
+        help="require agent-run (caliper:*) checks behind claude-code and codex certifications",
+    )
     release = sub.add_parser("release")
     release.add_argument("--tag", required=True)
     release.add_argument("--marketplace", default=".")
@@ -2005,6 +2060,19 @@ def build_parser() -> argparse.ArgumentParser:
     certify.add_argument("--platform", required=True)
     certify.add_argument("--evidence", required=True)
     certify.add_argument("--marketplace", default=".")
+    reliability = sub.add_parser(
+        "reliability", help="run Caliper per declared platform on the governed copy and certify what passes",
+    )
+    reliability.add_argument("skill_name")
+    reliability.add_argument("--department", required=True)
+    reliability.add_argument(
+        "--platform", action="append", dest="platforms", help="repeatable; defaults to every declared platform",
+    )
+    reliability.add_argument("--k", type=int, default=3)
+    reliability.add_argument("--timeout", type=int, default=180, help="seconds per attempt")
+    reliability.add_argument("--results-dir", help="raw and pruned runs (default <marketplace>/.caliper/runs)")
+    reliability.add_argument("--no-certify", action="store_true", help="measure and report without certifying")
+    reliability.add_argument("--marketplace", default=".")
     policy_apply = sub.add_parser("policy.apply", help="validate and save resolver policies")
     policy_apply.add_argument("--file", required=True, help="JSON array of policy rules")
     policy_apply.add_argument("--marketplace", default=".")
@@ -2048,7 +2116,9 @@ def main(argv: list[str] | None = None) -> int:
                 f"Recreated {entry['department']}/{entry['name']} as lineage {entry['lineage_id']}"
             )
         elif args.command == "check":
-            errors = check_marketplace(root, require_published=args.release)
+            errors = check_marketplace(
+                root, require_published=args.release, require_reliability=args.require_reliability,
+            )
             if errors:
                 print("Marketplace checks failed:\n- " + "\n- ".join(errors), file=sys.stderr)
                 return 1
@@ -2164,6 +2234,15 @@ def main(argv: list[str] | None = None) -> int:
                 raise MarketplaceError(f"cannot read certification evidence: {exc}") from exc
             record = certify_skill(root, args.department, args.skill_name, args.platform, evidence)
             print(json.dumps(record, indent=2, sort_keys=True))
+        elif args.command == "reliability":
+            report = reliability_skill(
+                root, args.department, args.skill_name, platforms=args.platforms, k=args.k,
+                timeout=args.timeout, results_dir=Path(args.results_dir) if args.results_dir else None,
+                certify=not args.no_certify,
+            )
+            print(json.dumps(report, indent=2, sort_keys=True))
+            if any(row.get("status") in {"refused", "failed"} for row in report["platforms"]):
+                return 1
         elif args.command == "policy.apply":
             try:
                 policies = json.loads(Path(args.file).read_text(encoding="utf-8"))

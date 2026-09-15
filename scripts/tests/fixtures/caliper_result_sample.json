@@ -1,0 +1,421 @@
+{
+  "run": {
+    "spec": "demo-skill",
+    "timestamp": "2026-09-15T10:00:00Z",
+    "k": 3,
+    "backend": "claude-code",
+    "model": null,
+    "era": "install-and-discover",
+    "ablated": [],
+    "judge_backend": "codex",
+    "judge_model": null,
+    "interrupted": false
+  },
+  "skill_snapshots": [
+    {
+      "name": "demo-skill",
+      "path": "SKILL.md",
+      "source_kind": "path",
+      "git_repo": null,
+      "git_sha": null,
+      "files": {
+        "SKILL.md": {
+          "content": "---\nname: demo-skill\ndescription: Demo skill used by the Caliper evidence tests.\nmetadata:\n  version: 1.0.0\n---\n# Demo skill\n\nRun `scripts/run_pipeline.py`.\n",
+          "hash": "sha256:d96a29c2149c088b51eb2f1178699d2cacd1ec09aae477157bdae7b00bd46fb5"
+        }
+      }
+    }
+  ],
+  "task_results": [
+    {
+      "task_id": "task-001",
+      "task_name": "happy path",
+      "attempts": [
+        {
+          "attempt": 1,
+          "output": "final message",
+          "duration_seconds": 30.0,
+          "outcome": "pass",
+          "usage": {
+            "input_tokens": 10,
+            "output_tokens": 100,
+            "cache_read_tokens": 1000,
+            "cache_creation_tokens": 500,
+            "total_tokens": 1610
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "content": "\u2026",
+              "tool_name": null,
+              "tool_input": null,
+              "tool_output": null
+            }
+          ],
+          "cheat_evidence": [],
+          "activated": [
+            "demo-skill"
+          ],
+          "activation_passed": true,
+          "assert_passed": true,
+          "assert_evidence": null,
+          "autorater_passed": true,
+          "autorater_reasoning": null,
+          "judge_seconds": 5.0,
+          "retries": 0,
+          "passed": true,
+          "cheated": false
+        },
+        {
+          "attempt": 2,
+          "output": "final message",
+          "duration_seconds": 28.0,
+          "outcome": "pass",
+          "usage": {
+            "input_tokens": 10,
+            "output_tokens": 100,
+            "cache_read_tokens": 1000,
+            "cache_creation_tokens": 500,
+            "total_tokens": 1610
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "content": "\u2026",
+              "tool_name": null,
+              "tool_input": null,
+              "tool_output": null
+            }
+          ],
+          "cheat_evidence": [],
+          "activated": [
+            "demo-skill"
+          ],
+          "activation_passed": true,
+          "assert_passed": true,
+          "assert_evidence": null,
+          "autorater_passed": true,
+          "autorater_reasoning": null,
+          "judge_seconds": 5.0,
+          "retries": 0,
+          "passed": true,
+          "cheated": false
+        },
+        {
+          "attempt": 3,
+          "output": "final message",
+          "duration_seconds": 31.0,
+          "outcome": "pass",
+          "usage": {
+            "input_tokens": 10,
+            "output_tokens": 100,
+            "cache_read_tokens": 1000,
+            "cache_creation_tokens": 500,
+            "total_tokens": 1610
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "content": "\u2026",
+              "tool_name": null,
+              "tool_input": null,
+              "tool_output": null
+            }
+          ],
+          "cheat_evidence": [],
+          "activated": [
+            "demo-skill"
+          ],
+          "activation_passed": true,
+          "assert_passed": true,
+          "assert_evidence": null,
+          "autorater_passed": true,
+          "autorater_reasoning": null,
+          "judge_seconds": 5.0,
+          "retries": 0,
+          "passed": true,
+          "cheated": false
+        }
+      ],
+      "successes": 3,
+      "unusable": 0,
+      "activation_expected": [
+        "demo-skill"
+      ],
+      "pass_at_k": 1.0,
+      "usable": 3,
+      "score": 1.0,
+      "pass_hat_k": 1.0,
+      "activation_usable": 3,
+      "activation_successes": 3,
+      "activation_score": 1.0
+    },
+    {
+      "task_id": "task-002",
+      "task_name": "edge case",
+      "attempts": [
+        {
+          "attempt": 1,
+          "output": "final message",
+          "duration_seconds": 20.0,
+          "outcome": "pass",
+          "usage": {
+            "input_tokens": 10,
+            "output_tokens": 100,
+            "cache_read_tokens": 1000,
+            "cache_creation_tokens": 500,
+            "total_tokens": 1610
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "content": "\u2026",
+              "tool_name": null,
+              "tool_input": null,
+              "tool_output": null
+            }
+          ],
+          "cheat_evidence": [],
+          "activated": [
+            "demo-skill"
+          ],
+          "activation_passed": true,
+          "assert_passed": true,
+          "assert_evidence": null,
+          "autorater_passed": null,
+          "autorater_reasoning": null,
+          "judge_seconds": null,
+          "retries": 0,
+          "passed": true,
+          "cheated": false
+        },
+        {
+          "attempt": 2,
+          "output": "final message",
+          "duration_seconds": 22.0,
+          "outcome": "pass",
+          "usage": {
+            "input_tokens": 10,
+            "output_tokens": 100,
+            "cache_read_tokens": 1000,
+            "cache_creation_tokens": 500,
+            "total_tokens": 1610
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "content": "\u2026",
+              "tool_name": null,
+              "tool_input": null,
+              "tool_output": null
+            }
+          ],
+          "cheat_evidence": [],
+          "activated": [
+            "demo-skill"
+          ],
+          "activation_passed": true,
+          "assert_passed": true,
+          "assert_evidence": null,
+          "autorater_passed": null,
+          "autorater_reasoning": null,
+          "judge_seconds": null,
+          "retries": 0,
+          "passed": true,
+          "cheated": false
+        },
+        {
+          "attempt": 3,
+          "output": "final message",
+          "duration_seconds": 180.0,
+          "outcome": "timeout",
+          "usage": {
+            "input_tokens": 10,
+            "output_tokens": 100,
+            "cache_read_tokens": 1000,
+            "cache_creation_tokens": 500,
+            "total_tokens": 1610
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "content": "\u2026",
+              "tool_name": null,
+              "tool_input": null,
+              "tool_output": null
+            }
+          ],
+          "cheat_evidence": [],
+          "activated": null,
+          "activation_passed": null,
+          "assert_passed": null,
+          "assert_evidence": null,
+          "autorater_passed": null,
+          "autorater_reasoning": null,
+          "judge_seconds": null,
+          "retries": 0,
+          "passed": false,
+          "cheated": false
+        }
+      ],
+      "successes": 2,
+      "unusable": 1,
+      "activation_expected": [
+        "demo-skill"
+      ],
+      "pass_at_k": 1.0,
+      "usable": 2,
+      "score": 1.0,
+      "pass_hat_k": 1.0,
+      "activation_usable": 2,
+      "activation_successes": 2,
+      "activation_score": 1.0
+    },
+    {
+      "task_id": "task-003",
+      "task_name": "silence probe",
+      "attempts": [
+        {
+          "attempt": 1,
+          "output": "final message",
+          "duration_seconds": 4.0,
+          "outcome": "not_checked",
+          "usage": {
+            "input_tokens": 10,
+            "output_tokens": 100,
+            "cache_read_tokens": 1000,
+            "cache_creation_tokens": 500,
+            "total_tokens": 1610
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "content": "\u2026",
+              "tool_name": null,
+              "tool_input": null,
+              "tool_output": null
+            }
+          ],
+          "cheat_evidence": [],
+          "activated": [],
+          "activation_passed": true,
+          "assert_passed": null,
+          "assert_evidence": null,
+          "autorater_passed": null,
+          "autorater_reasoning": null,
+          "judge_seconds": null,
+          "retries": 0,
+          "passed": false,
+          "cheated": false
+        },
+        {
+          "attempt": 2,
+          "output": "final message",
+          "duration_seconds": 4.0,
+          "outcome": "not_checked",
+          "usage": {
+            "input_tokens": 10,
+            "output_tokens": 100,
+            "cache_read_tokens": 1000,
+            "cache_creation_tokens": 500,
+            "total_tokens": 1610
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "content": "\u2026",
+              "tool_name": null,
+              "tool_input": null,
+              "tool_output": null
+            }
+          ],
+          "cheat_evidence": [],
+          "activated": [],
+          "activation_passed": true,
+          "assert_passed": null,
+          "assert_evidence": null,
+          "autorater_passed": null,
+          "autorater_reasoning": null,
+          "judge_seconds": null,
+          "retries": 0,
+          "passed": false,
+          "cheated": false
+        },
+        {
+          "attempt": 3,
+          "output": "final message",
+          "duration_seconds": 4.0,
+          "outcome": "not_checked",
+          "usage": {
+            "input_tokens": 10,
+            "output_tokens": 100,
+            "cache_read_tokens": 1000,
+            "cache_creation_tokens": 500,
+            "total_tokens": 1610
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "content": "\u2026",
+              "tool_name": null,
+              "tool_input": null,
+              "tool_output": null
+            }
+          ],
+          "cheat_evidence": [],
+          "activated": [],
+          "activation_passed": true,
+          "assert_passed": null,
+          "assert_evidence": null,
+          "autorater_passed": null,
+          "autorater_reasoning": null,
+          "judge_seconds": null,
+          "retries": 0,
+          "passed": false,
+          "cheated": false
+        }
+      ],
+      "successes": 0,
+      "unusable": 0,
+      "activation_expected": [],
+      "pass_at_k": null,
+      "usable": 0,
+      "score": null,
+      "pass_hat_k": null,
+      "activation_usable": 3,
+      "activation_successes": 3,
+      "activation_score": 1.0
+    }
+  ],
+  "aggregate": {
+    "avg_score": 1.0,
+    "scored_tasks": 2,
+    "per_task": [
+      {
+        "task_id": "task-001",
+        "task_name": "happy path",
+        "k": 3,
+        "successes": 3,
+        "score": 1.0
+      },
+      {
+        "task_id": "task-002",
+        "task_name": "edge case",
+        "k": 3,
+        "successes": 2,
+        "score": 1.0
+      },
+      {
+        "task_id": "task-003",
+        "task_name": "silence probe",
+        "k": 3,
+        "successes": 0,
+        "score": null
+      }
+    ],
+    "avg_activation_score": 1.0,
+    "activation_tasks": 3,
+    "activation_asserted": 3,
+    "activation_per_skill": []
+  }
+}

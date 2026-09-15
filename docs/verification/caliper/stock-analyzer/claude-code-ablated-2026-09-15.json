@@ -1,0 +1,305 @@
+{
+  "aggregate": {
+    "activation_asserted": 0,
+    "activation_per_skill": [],
+    "activation_tasks": 0,
+    "avg_activation_score": null,
+    "avg_score": 0.0,
+    "per_task": [
+      {
+        "k": 3,
+        "score": 0.0,
+        "successes": 0,
+        "task_id": "task-001",
+        "task_name": "Analyzes AAPL with RSI and MACD into a JSON signal"
+      },
+      {
+        "k": 3,
+        "score": 0.0,
+        "successes": 0,
+        "task_id": "task-002",
+        "task_name": "Reports an unsupported indicator instead of inventing one"
+      },
+      {
+        "k": 3,
+        "score": null,
+        "successes": 0,
+        "task_id": "task-003",
+        "task_name": "Stays silent on an unrelated request"
+      }
+    ],
+    "scored_tasks": 2
+  },
+  "run": {
+    "ablated": [
+      "stock-analyzer"
+    ],
+    "backend": "claude-code",
+    "era": "install-and-discover",
+    "interrupted": false,
+    "judge_backend": "codex",
+    "judge_model": null,
+    "k": 3,
+    "model": null,
+    "spec": "stock-analyzer",
+    "timestamp": "2026-09-15T10:08:32.283991Z"
+  },
+  "skill_snapshots": [],
+  "task_results": [
+    {
+      "activation_expected": null,
+      "activation_score": null,
+      "activation_successes": 0,
+      "activation_usable": 0,
+      "attempts": [
+        {
+          "activated": null,
+          "activation_passed": null,
+          "assert_evidence": "Traceback (most recent call last):\n  File \"/var/folders/q_/78dc5cgs1v1f4wg004g83y2c0000gn/T/tmpgrfekyhh.py\", line 5, in <module>\n    assert d.get(\"ticker\") == \"AAPL\", d.get(\"ticker\")\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: None",
+          "assert_passed": false,
+          "attempt": 1,
+          "autorater_passed": false,
+          "autorater_reasoning": "The agent wrote ad-hoc Python analysis code instead of using the stock-analyzer skill's own pipeline script. It explained RSI and MACD but reported only a bullish bias, not an explicit BUY, SELL, or HOLD signal for AAPL.",
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 49.33960380899953,
+          "judge_seconds": 11.565795146016171,
+          "outcome": "task_fail",
+          "passed": false,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": 14565,
+            "cache_read_tokens": 89784,
+            "input_tokens": 10,
+            "output_tokens": 3409,
+            "total_tokens": 107768
+          }
+        },
+        {
+          "activated": null,
+          "activation_passed": null,
+          "assert_evidence": "Traceback (most recent call last):\n  File \"/var/folders/q_/78dc5cgs1v1f4wg004g83y2c0000gn/T/tmp115vtgb5.py\", line 6, in <module>\n    assert d[\"signal\"][\"action\"] in (\"BUY\", \"SELL\", \"HOLD\"), d[\"signal\"]\n           ~~~~~~~~~~~^^^^^^^^^^\nKeyError: 'action'",
+          "assert_passed": false,
+          "attempt": 2,
+          "autorater_passed": false,
+          "autorater_reasoning": "The agent used ad-hoc Python to compute indicators instead of the stock-analyzer skill's pipeline script. It explained RSI and MACD but reported \u201cbullish\u201d rather than a BUY, SELL, or HOLD signal for AAPL.",
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 43.28789256099844,
+          "judge_seconds": 11.162720375985373,
+          "outcome": "task_fail",
+          "passed": false,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": 13006,
+            "cache_read_tokens": 65061,
+            "input_tokens": 8,
+            "output_tokens": 3731,
+            "total_tokens": 81806
+          }
+        },
+        {
+          "activated": null,
+          "activation_passed": null,
+          "assert_evidence": "Traceback (most recent call last):\n  File \"/var/folders/q_/78dc5cgs1v1f4wg004g83y2c0000gn/T/tmpwhqe56sc.py\", line 5, in <module>\n    assert d.get(\"ticker\") == \"AAPL\", d.get(\"ticker\")\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: None",
+          "assert_passed": false,
+          "attempt": 3,
+          "autorater_passed": false,
+          "autorater_reasoning": "The agent wrote and ran ad-hoc analysis code instead of using the stock-analyzer skill's own pipeline script. It explained the RSI and MACD indicators but reported \u201cBullish\u201d rather than a BUY, SELL, or HOLD signal for AAPL.",
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 45.74211994401412,
+          "judge_seconds": 11.028243081993423,
+          "outcome": "task_fail",
+          "passed": false,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": 14638,
+            "cache_read_tokens": 68261,
+            "input_tokens": 8,
+            "output_tokens": 3536,
+            "total_tokens": 86443
+          }
+        }
+      ],
+      "pass_at_k": 0.0,
+      "pass_hat_k": 0.0,
+      "score": 0.0,
+      "successes": 0,
+      "task_id": "task-001",
+      "task_name": "Analyzes AAPL with RSI and MACD into a JSON signal",
+      "unusable": 0,
+      "usable": 3
+    },
+    {
+      "activation_expected": null,
+      "activation_score": null,
+      "activation_successes": 0,
+      "activation_usable": 0,
+      "attempts": [
+        {
+          "activated": null,
+          "activation_passed": null,
+          "assert_evidence": "Traceback (most recent call last):\n  File \"/var/folders/q_/78dc5cgs1v1f4wg004g83y2c0000gn/T/tmpsmd9zp_t.py\", line 6, in <module>\n    assert \"RSI\" in ind and \"Bollinger\" in ind, list(ind)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ['rsi', 'bollinger_bands', 'ichimoku']",
+          "assert_passed": false,
+          "attempt": 1,
+          "autorater_passed": false,
+          "autorater_reasoning": "RSI and Bollinger results are reported, but the agent never states that Ichimoku is unsupported by the skill. Instead, it claims Ichimoku was fully computed and presents detailed numerical values and interpretations.",
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 65.55462262200308,
+          "judge_seconds": 10.304551598004764,
+          "outcome": "task_fail",
+          "passed": false,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": 16621,
+            "cache_read_tokens": 113963,
+            "input_tokens": 12,
+            "output_tokens": 4910,
+            "total_tokens": 135506
+          }
+        },
+        {
+          "activated": null,
+          "activation_passed": null,
+          "assert_evidence": "Traceback (most recent call last):\n  File \"/var/folders/q_/78dc5cgs1v1f4wg004g83y2c0000gn/T/tmpisfhkyg2.py\", line 6, in <module>\n    assert \"RSI\" in ind and \"Bollinger\" in ind, list(ind)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ['rsi', 'bollinger', 'ichimoku']",
+          "assert_passed": false,
+          "attempt": 2,
+          "autorater_passed": false,
+          "autorater_reasoning": "The agent reports RSI and Bollinger results but does not state that Ichimoku is unsupported by the skill. Instead, it implements Ichimoku itself and presents specific values, violating the required unsupported-indicator handling.",
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 52.014464345003944,
+          "judge_seconds": 11.092480382008944,
+          "outcome": "task_fail",
+          "passed": false,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": 15093,
+            "cache_read_tokens": 115365,
+            "input_tokens": 12,
+            "output_tokens": 4017,
+            "total_tokens": 134487
+          }
+        },
+        {
+          "activated": null,
+          "activation_passed": null,
+          "assert_evidence": "Traceback (most recent call last):\n  File \"/var/folders/q_/78dc5cgs1v1f4wg004g83y2c0000gn/T/tmpzwbw9orc.py\", line 6, in <module>\n    assert \"RSI\" in ind and \"Bollinger\" in ind, list(ind)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ['rsi', 'bollinger', 'ichimoku']",
+          "assert_passed": false,
+          "attempt": 3,
+          "autorater_passed": false,
+          "autorater_reasoning": "The agent reports RSI and Bollinger results, but never states that Ichimoku is unsupported by the skill. Instead, it computes and presents Ichimoku values and signals, violating the required unsupported-indicator handling.",
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 53.395463782013394,
+          "judge_seconds": 9.943999703013105,
+          "outcome": "task_fail",
+          "passed": false,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": 18000,
+            "cache_read_tokens": 118419,
+            "input_tokens": 12,
+            "output_tokens": 4232,
+            "total_tokens": 140663
+          }
+        }
+      ],
+      "pass_at_k": 0.0,
+      "pass_hat_k": 0.0,
+      "score": 0.0,
+      "successes": 0,
+      "task_id": "task-002",
+      "task_name": "Reports an unsupported indicator instead of inventing one",
+      "unusable": 0,
+      "usable": 3
+    },
+    {
+      "activation_expected": null,
+      "activation_score": null,
+      "activation_successes": 0,
+      "activation_usable": 0,
+      "attempts": [
+        {
+          "activated": null,
+          "activation_passed": null,
+          "assert_evidence": null,
+          "assert_passed": null,
+          "attempt": 1,
+          "autorater_passed": null,
+          "autorater_reasoning": null,
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 3.642483377014287,
+          "judge_seconds": null,
+          "outcome": "not_checked",
+          "passed": false,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": 6524,
+            "cache_read_tokens": 10010,
+            "input_tokens": 2,
+            "output_tokens": 32,
+            "total_tokens": 16568
+          }
+        },
+        {
+          "activated": null,
+          "activation_passed": null,
+          "assert_evidence": null,
+          "assert_passed": null,
+          "attempt": 2,
+          "autorater_passed": null,
+          "autorater_reasoning": null,
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 3.7210000149789266,
+          "judge_seconds": null,
+          "outcome": "not_checked",
+          "passed": false,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": 6526,
+            "cache_read_tokens": 10010,
+            "input_tokens": 2,
+            "output_tokens": 36,
+            "total_tokens": 16574
+          }
+        },
+        {
+          "activated": null,
+          "activation_passed": null,
+          "assert_evidence": null,
+          "assert_passed": null,
+          "attempt": 3,
+          "autorater_passed": null,
+          "autorater_reasoning": null,
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 3.6424694120069034,
+          "judge_seconds": null,
+          "outcome": "not_checked",
+          "passed": false,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": 6524,
+            "cache_read_tokens": 10010,
+            "input_tokens": 2,
+            "output_tokens": 33,
+            "total_tokens": 16569
+          }
+        }
+      ],
+      "pass_at_k": null,
+      "pass_hat_k": null,
+      "score": null,
+      "successes": 0,
+      "task_id": "task-003",
+      "task_name": "Stays silent on an unrelated request",
+      "unusable": 0,
+      "usable": 0
+    }
+  ]
+}

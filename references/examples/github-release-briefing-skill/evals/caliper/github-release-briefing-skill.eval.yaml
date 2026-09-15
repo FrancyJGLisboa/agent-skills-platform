@@ -1,0 +1,64 @@
+# Caliper agent-run reliability spec for github-release-briefing-skill.
+#
+# The file-level evals in ../github-release-briefing.eval.md run the pipeline
+# script directly. This spec runs a real agent (claude-code or codex) with the
+# skill installed in a fresh HOME and checks discovery, instruction following,
+# and the real side effect. Tasks call the public GitHub REST API read-only.
+#
+#   caliper validate github-release-briefing-skill.eval.yaml
+#   caliper run github-release-briefing-skill.eval.yaml --k 3 --timeout 180 --model claude-code --judge-model codex
+#
+# Backend and judge are runtime flags, never spec fields. See docs/CALIPER.md.
+skills:
+  - ../../SKILL.md
+
+sandbox:
+  forbidden_files:
+    - "evals/"
+    - "references/examples/"
+
+tasks:
+  - name: Briefs the latest published release of a public repository
+    setup: rm -rf /tmp/caliper-ghr && mkdir -p /tmp/caliper-ghr
+    cleanup: rm -rf /tmp/caliper-ghr
+    prompt: >
+      Give me a briefing on the latest published GitHub release of
+      openai/openai-python and save it as Markdown to /tmp/caliper-ghr/brief.md.
+    activates: [github-release-briefing-skill]
+    expect: >
+      The agent ran the installed skill's scripts/run_pipeline.py to produce the
+      briefing, and its final reply names the release tag and the publication
+      date of the latest openai/openai-python release.
+    assert: |
+      import re
+      from pathlib import Path
+
+      # Substance, not layout: agents commonly re-format the pipeline's Markdown.
+      text = Path("/tmp/caliper-ghr/brief.md").read_text()
+      assert re.search(r"\bv\d+\.\d+\.\d+", text), "no release tag"
+      assert "https://github.com/openai/openai-python/releases/tag/" in text, "no release URL"
+      assert "https://api.github.com/repos/openai/openai-python/releases/latest" in text, "no API source URL"
+
+  - name: States clearly when a repository has no published release
+    setup: rm -rf /tmp/caliper-ghr && mkdir -p /tmp/caliper-ghr
+    cleanup: rm -rf /tmp/caliper-ghr
+    prompt: >
+      Brief me on the latest published GitHub release of torvalds/linux and save
+      it to /tmp/caliper-ghr/brief.md.
+    activates: [github-release-briefing-skill]
+    expect: >
+      The agent reports that torvalds/linux has no published GitHub release (or
+      that the release endpoint is unavailable) and does not invent a release
+      tag, date, or URL.
+    assert: |
+      from pathlib import Path
+
+      # A fabricated release would come with a release URL; a correct brief has none.
+      p = Path("/tmp/caliper-ghr/brief.md")
+      if p.exists():
+          text = p.read_text()
+          assert "github.com/torvalds/linux/releases/tag/" not in text, "brief links a release tag for a repository with none"
+
+  - name: Stays silent on an unrelated request
+    prompt: "Write a haiku about autumn rain."
+    activates: []

@@ -447,6 +447,7 @@ Create all files in this order:
 5. Write references (detailed documentation the skill loads on demand)
 6. Write assets (templates, configs)
 7. **Emit the eval spec** (skip if `--no-eval`): write `evals/<name>.eval.md` (the binary checks + golden cases derived in Phase 2, one marked `"split": "test"` as the holdout, plus a `judge` block with a pinned model and known-bad canary when any criterion is `llm-judge`) and copy `scripts/run_evals_template.py` → the generated skill's `scripts/run_evals.py`. See `references/phase2-eval-assessment.md`
+   Also write `evals/caliper/<name>.eval.yaml` from `references/templates/caliper-eval-template.yaml` (happy path, edge case, silence probe; asserts mirror the criteria above) so the marketplace operator's agent can measure the skill inside a real agent with `team_marketplace.py reliability`. See `docs/CALIPER.md`
 7.5. Write **`discovery.json`** with the required decision contract (`question`,
    `trigger`, `decision`, `evidence`, and `success_measure`), plus the real-world
    outcome, intended users, input types, output artifacts, use cases, invocation
