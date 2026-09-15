@@ -100,7 +100,8 @@ Read the [product scope](docs/PRODUCT_SCOPE.md),
 - **Preserve expert judgment.** A skill captures the question, evidence, decision,
   and success measure behind recurring work.
 - **Trust what is shared.** Skills carry validation, security checks, evals, and a
-  representative run before they are published.
+  representative run before they are published; for Claude Code and Codex the
+  marketplace can also certify a skill from real agent runs (`reliability`).
 - **Learn without runtime bloat.** Maintenance keeps evidence, draft patterns, and
   rejected changes separate from the concise instructions an agent executes.
 - **Govern team use.** The marketplace provides ownership, approvals, versioned
@@ -173,6 +174,9 @@ multi-step workflow has one reliable entry point. Four checks—specification,
 pipeline, security, and evaluation schema—run in parallel. Finally, a
 representative run proves that the skill produces a useful result. The graph also
 enforces `every_expected_is_reachable` and `deterministic_multistep_has_orchestrator`.
+After intake, `team_marketplace.py reliability` can run the skill inside each installed
+agent runtime k times and certify only what an agent actually discovered and followed
+([Caliper](docs/CALIPER.md)).
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 Contributions require the [contributor assignment](CONTRIBUTOR_ASSIGNMENT.md).

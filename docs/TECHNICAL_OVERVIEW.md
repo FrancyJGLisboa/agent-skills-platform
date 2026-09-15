@@ -49,10 +49,17 @@ versions, compatibility evidence, rollout, quarantine, and rollback. The skill
 factory creates the artifact; the marketplace operator governs distribution. Full
 procedures: [Governed Team Marketplace](TEAM_MARKETPLACE.md).
 
+Compatibility evidence for Claude Code and Codex can come from real agent runs: the
+factory emits `evals/caliper/<skill>.eval.yaml`, and `team_marketplace.py reliability`
+runs it inside each installed runtime, binds the run to the released `SKILL.md` hash,
+and certifies only what cleared the reliability thresholds
+([agent-run reliability](CALIPER.md)).
+
 ## Technical references
 
 - [Skill creation and validation instructions](../SKILL.md)
 - [Marketplace implementation and operations](TEAM_MARKETPLACE.md)
+- [Agent-run reliability evidence (Caliper)](CALIPER.md)
 - [Platform installation adapters](INSTALL.md)
 - [Structured interview protocol](../references/structured-interview.md)
 - [Capability resolver contract](../references/capability-resolver-contract.md)
