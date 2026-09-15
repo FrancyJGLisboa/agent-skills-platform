@@ -662,3 +662,28 @@ and adapted artifact plans therefore stay aligned with the factory installers.
 `check --release` blocks every declared platform that lacks passing certification
 for the exact skill version. Updating a skill clears older certification evidence,
 so certification must be repeated before the next release.
+
+### Agent-run reliability evidence (Caliper pilot)
+
+Certification evidence is only as good as the checks behind it. For `claude-code` and
+`codex`, a [Caliper](CALIPER.md) run supplies checks an agent actually earned: the skill
+was installed in a fresh HOME, discovered from its description, followed rather than
+improvised, and passed `k` times. `scripts/caliper_evidence.py` binds the run to the
+submitted `SKILL.md` hash and commit, enforces reliability thresholds, and writes the
+evidence file `certify` expects:
+
+```bash
+caliper run references/examples/report-skill/evals/caliper/report-skill.eval.yaml \
+  --k 3 --workers 1 --timeout 180 --model codex --judge-model claude-code \
+  --output .caliper/runs/report-skill-codex.json
+python3 scripts/caliper_evidence.py .caliper/runs/report-skill-codex.json \
+  --skill references/examples/report-skill --evidence-out /tmp/report-skill-codex.json
+python3 scripts/team_marketplace.py certify report-skill \
+  --department finance --platform codex --evidence /tmp/report-skill-codex.json \
+  --marketplace ./acme-skills
+```
+
+Stored records keep only check names, so each name states its threshold and the observed
+value (`caliper:success_rate>=0.90(observed=1.00)`). A run below threshold, an ablated
+run, or a run of a different `SKILL.md` is refused before `certify` ever sees it. Runs are
+manual and local; CI validates spec syntax only.

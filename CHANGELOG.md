@@ -7,6 +7,17 @@ to semantic versioning where practical.
 ## [Unreleased]
 
 ### Added
+- **Caliper pilot (agent-run reliability evidence)**: two bundled example skills
+  (`stock-analyzer`, `github-release-briefing-skill`) carry a Caliper spec at
+  `evals/caliper/<skill>.eval.yaml` that runs a real agent with the skill installed in a
+  fresh HOME, k times, with deterministic `assert:` checks, an LLM-judged `expect:`, and
+  activation / silence probes. `scripts/caliper_evidence.py` converts a run into
+  `team_marketplace.py certify --evidence` JSON, bound to the tested `SKILL.md` hash and
+  commit, with thresholds encoded in the stored check names. CI validates spec syntax
+  offline (`caliper validate`); agent runs stay local. Pruned run records live under
+  `docs/verification/caliper/`. `content_fingerprint()` now ignores dot-directories so
+  Caliper's `.caliper/results/` cache beside a spec cannot make `VERIFICATION.md` stale.
+  See `docs/CALIPER.md`.
 - **Desktop app (`desktop/`)**: a Tauri 2 + React front end for `skill_registry.py`
   with Installed, Registry, and Recycle-bin tabs and the enable / disable / update /
   uninstall / restore actions. Holds no registry logic — every action shells out to

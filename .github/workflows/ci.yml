@@ -77,6 +77,14 @@ jobs:
             echo "::endgroup::"
           done
 
+      - name: Validate Caliper agent-run specs (syntax only, no agent, no keys)
+        # `caliper validate` is offline. Agent runs stay local; see docs/CALIPER.md.
+        run: |
+          for spec in references/examples/*/evals/caliper/*.eval.yaml; do
+            [ -f "$spec" ] || continue
+            uvx --from caliper-eval==0.11.0 caliper validate "$spec"
+          done
+
   cross-os:
     # The project's promise is cross-platform install; run the suite on the
     # other POSIX/Windows targets to catch path- and OS-specific bugs.

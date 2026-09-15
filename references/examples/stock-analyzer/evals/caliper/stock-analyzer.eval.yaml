@@ -1,0 +1,70 @@
+# Caliper agent-run reliability spec for stock-analyzer.
+#
+# The file-level evals in ../stock-analyzer.eval.md run the pipeline script
+# directly. This spec runs a real agent (claude-code or codex) with the skill
+# installed in a fresh HOME and checks that the agent discovers the skill,
+# follows it, and produces the side effect it claims.
+#
+#   caliper validate stock-analyzer.eval.yaml
+#   caliper run stock-analyzer.eval.yaml --k 3 --timeout 180 --model claude-code --judge-model codex
+#   caliper run stock-analyzer.eval.yaml --k 3 --timeout 180 --model claude-code --ablate stock-analyzer
+#
+# Backend and judge are runtime flags, never spec fields. See docs/CALIPER.md.
+skills:
+  - ../../SKILL.md
+
+sandbox:
+  forbidden_files:
+    # Golden cases and the file-level eval spec are answer keys: never installed, never read.
+    - "evals/"
+    # The repository checkout is a back door around the installed copy.
+    - "references/examples/"
+
+tasks:
+  - name: Analyzes AAPL with RSI and MACD into a JSON signal
+    setup: rm -rf /tmp/caliper-stock && mkdir -p /tmp/caliper-stock
+    cleanup: rm -rf /tmp/caliper-stock
+    prompt: >
+      Run a technical analysis of AAPL using RSI and MACD and write the result as
+      JSON to /tmp/caliper-stock/aapl.json.
+    activates: [stock-analyzer]
+    expect: >
+      The agent used the stock-analyzer skill's own pipeline script rather than
+      writing ad-hoc analysis code, reports a BUY, SELL, or HOLD signal for AAPL,
+      and explains which indicators drove the signal.
+    assert: |
+      import json
+      from pathlib import Path
+
+      d = json.loads(Path("/tmp/caliper-stock/aapl.json").read_text())
+      assert d.get("ticker") == "AAPL", d.get("ticker")
+      assert d["signal"]["action"] in ("BUY", "SELL", "HOLD"), d["signal"]
+      assert d["signal"].get("reasoning"), "signal has no reasoning"
+      # The skill's pipeline is a fixed-value mock; this signature proves the
+      # agent ran the skill's script instead of inventing indicator values.
+      assert d["indicators"]["RSI"]["value"] == 62.3, d["indicators"]["RSI"]
+      assert "MACD" in d["indicators"], list(d["indicators"])
+
+  - name: Reports an unsupported indicator instead of inventing one
+    setup: rm -rf /tmp/caliper-stock && mkdir -p /tmp/caliper-stock
+    cleanup: rm -rf /tmp/caliper-stock
+    prompt: >
+      Analyze MSFT with RSI, Bollinger and Ichimoku. Save the JSON result to
+      /tmp/caliper-stock/msft.json and tell me which indicators were actually computed.
+    activates: [stock-analyzer]
+    expect: >
+      The agent states that Ichimoku is not supported by the skill and does not
+      present fabricated Ichimoku values. RSI and Bollinger results are reported.
+    assert: |
+      import json
+      from pathlib import Path
+
+      d = json.loads(Path("/tmp/caliper-stock/msft.json").read_text())
+      ind = d["indicators"]
+      assert "RSI" in ind and "Bollinger" in ind, list(ind)
+      ichimoku = ind.get("Ichimoku")
+      assert ichimoku is None or "error" in ichimoku, ichimoku
+
+  - name: Stays silent on an unrelated request
+    prompt: "Write a haiku about autumn rain."
+    activates: []

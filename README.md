@@ -136,6 +136,7 @@ inspect the [skill package](references/examples/live-weather-briefing-skill).
 | Let non-technical teammates browse and install skills | [Desktop app](docs/DESKTOP_APP.md) |
 | Create, correct, and hand off a first skill | [Worker runbook](docs/WORKER_RUNBOOK.md) |
 | Run a governed internal marketplace | [Team marketplace](docs/TEAM_MARKETPLACE.md) |
+| Test a skill inside a real agent and certify it per runtime | [Caliper pilot](docs/CALIPER.md) |
 | Understand scope and product boundaries | [Product scope](docs/PRODUCT_SCOPE.md) |
 | Review architecture, validation, and technical controls | [Technical overview](docs/TECHNICAL_OVERVIEW.md) |
 | Contribute | [Contributing](CONTRIBUTING.md) |

@@ -1,5 +1,23 @@
 # Project learnings — agent-skills-platform
 
+## 2026-09-15 — File-level evals and agent-run evals answer different questions; keep both runners
+
+`scripts/run_evals.py` runs the skill's pipeline against golden cases and never starts an
+agent. Caliper (`evals/caliper/*.eval.yaml`, `docs/CALIPER.md`) starts a real agent with
+the skill installed and checks discovery, instruction following, and repeat consistency.
+The first pilot run showed the gap immediately: `stock-analyzer` passed every file-level
+eval while Claude Code read the skill, ignored its pipeline, and computed indicators itself.
+
+**Why:** merging the two into one runner would hide which half failed (a bad
+`description`, a bad body, or a bad script need different fixes), and agent runs cost
+minutes and tokens per attempt, so they cannot sit on the delivery gate.
+
+**When to apply:** agent runs stay manual and local; CI only validates spec syntax
+(`caliper validate` is offline). Feed results into marketplace certification through
+`scripts/caliper_evidence.py`, never by hand-writing `checks`. Results directories
+(`.caliper/`) are tool caches: `content_fingerprint()` skips dot-directories so a run
+cannot make `VERIFICATION.md` stale.
+
 ## When adding a new Phase-5 gate, also touch the AGENTS.md Files block and the Step-10 report template
 
 When introducing a new Phase-5 verifier, artifact, or generated file (eval spec,

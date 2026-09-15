@@ -1,0 +1,331 @@
+{
+  "aggregate": {
+    "activation_asserted": 3,
+    "activation_per_skill": [
+      {
+        "expected": 5,
+        "fired": 5,
+        "hits": 5,
+        "opportunities": 2,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skill": "stock-analyzer",
+        "total": 7,
+        "unwanted": 0,
+        "unwanted_rate": 0.0
+      }
+    ],
+    "activation_tasks": 3,
+    "avg_activation_score": 1.0,
+    "avg_score": 0.5,
+    "per_task": [
+      {
+        "k": 3,
+        "score": 0.0,
+        "successes": 0,
+        "task_id": "task-001",
+        "task_name": "Analyzes AAPL with RSI and MACD into a JSON signal"
+      },
+      {
+        "k": 3,
+        "score": 1.0,
+        "successes": 2,
+        "task_id": "task-002",
+        "task_name": "Reports an unsupported indicator instead of inventing one"
+      },
+      {
+        "k": 3,
+        "score": null,
+        "successes": 0,
+        "task_id": "task-003",
+        "task_name": "Stays silent on an unrelated request"
+      }
+    ],
+    "scored_tasks": 2
+  },
+  "run": {
+    "ablated": [],
+    "backend": "claude-code",
+    "era": "install-and-discover",
+    "interrupted": false,
+    "judge_backend": "codex",
+    "judge_model": null,
+    "k": 3,
+    "model": null,
+    "spec": "stock-analyzer",
+    "timestamp": "2026-09-15T09:50:19.078750Z"
+  },
+  "skill_snapshots": [
+    {
+      "files": {
+        "SKILL.md": {
+          "hash": "sha256:5b56aebdaaf2edf230b79acceebe811c291b647ac872b2d3d6a72a6a3e76176c"
+        }
+      },
+      "git_repo": "/Users/francylisboacharuto/agent-skills-platform",
+      "git_sha": "ce92effabd3a114ef10957f8debaf42c761f7429",
+      "name": "stock-analyzer",
+      "path": "/Users/francylisboacharuto/agent-skills-platform/references/examples/stock-analyzer/SKILL.md",
+      "source_kind": "path"
+    }
+  ],
+  "task_results": [
+    {
+      "activation_expected": [
+        "stock-analyzer"
+      ],
+      "activation_score": 1.0,
+      "activation_successes": 3,
+      "activation_usable": 3,
+      "attempts": [
+        {
+          "activated": [
+            "stock-analyzer"
+          ],
+          "activation_passed": true,
+          "assert_evidence": "Traceback (most recent call last):\n  File \"/var/folders/q_/78dc5cgs1v1f4wg004g83y2c0000gn/T/tmp_nlv8tpy.py\", line 10, in <module>\n    assert d[\"indicators\"][\"RSI\"][\"value\"] == 62.3, d[\"indicators\"][\"RSI\"]\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'period': 14, 'method': 'Wilder', 'value': 63.3156, 'previous': 62.789, 'state': 'neutral', 'thresholds': {'oversold': 30, 'overbought': 70}}",
+          "assert_passed": false,
+          "attempt": 1,
+          "autorater_passed": false,
+          "autorater_reasoning": "The agent explicitly bypassed the stock-analyzer pipeline and wrote ad-hoc Python analysis code. It reported HOLD for AAPL and explained the RSI and MACD drivers, but failed the required pipeline-use condition.",
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 41.65852919101599,
+          "judge_seconds": 14.081454536993988,
+          "outcome": "task_fail",
+          "passed": false,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": 25256,
+            "cache_read_tokens": 71032,
+            "input_tokens": 8,
+            "output_tokens": 2838,
+            "total_tokens": 99134
+          }
+        },
+        {
+          "activated": [
+            "stock-analyzer"
+          ],
+          "activation_passed": true,
+          "assert_evidence": "Traceback (most recent call last):\n  File \"/var/folders/q_/78dc5cgs1v1f4wg004g83y2c0000gn/T/tmplg4jux77.py\", line 10, in <module>\n    assert d[\"indicators\"][\"RSI\"][\"value\"] == 62.3, d[\"indicators\"][\"RSI\"]\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'period': 14, 'value': 63.32, 'signal': 'neutral', 'interpretation': 'RSI above 50 indicates bullish momentum, but not overbought', 'history_5d': [50.2, 49.35, 58.94, 62.79, 63.32]}",
+          "assert_passed": false,
+          "attempt": 2,
+          "autorater_passed": false,
+          "autorater_reasoning": "The agent reported HOLD for AAPL and explained the RSI and MACD indicators driving it. However, it only read the skill\u2019s pipeline script and explicitly replaced it with ad-hoc analysis code, violating the pipeline-use requirement.",
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 54.53233504900709,
+          "judge_seconds": 11.47495152099873,
+          "outcome": "task_fail",
+          "passed": false,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": 31453,
+            "cache_read_tokens": 133816,
+            "input_tokens": 12,
+            "output_tokens": 3999,
+            "total_tokens": 169280
+          }
+        },
+        {
+          "activated": [
+            "stock-analyzer"
+          ],
+          "activation_passed": true,
+          "assert_evidence": "Traceback (most recent call last):\n  File \"/var/folders/q_/78dc5cgs1v1f4wg004g83y2c0000gn/T/tmpxqnzdwao.py\", line 10, in <module>\n    assert d[\"indicators\"][\"RSI\"][\"value\"] == 62.3, d[\"indicators\"][\"RSI\"]\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'period': 14, 'value': 63.32, 'state': 'neutral'}",
+          "assert_passed": false,
+          "attempt": 3,
+          "autorater_passed": false,
+          "autorater_reasoning": "The agent reports HOLD for AAPL and explains the RSI and MACD drivers, but explicitly bypasses the skill\u2019s bundled pipeline and writes ad-hoc analysis code. This violates the pipeline-use requirement.",
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 37.1024707230099,
+          "judge_seconds": 13.746155737986555,
+          "outcome": "task_fail",
+          "passed": false,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": 18188,
+            "cache_read_tokens": 78040,
+            "input_tokens": 8,
+            "output_tokens": 2569,
+            "total_tokens": 98805
+          }
+        }
+      ],
+      "pass_at_k": 0.0,
+      "pass_hat_k": 0.0,
+      "score": 0.0,
+      "successes": 0,
+      "task_id": "task-001",
+      "task_name": "Analyzes AAPL with RSI and MACD into a JSON signal",
+      "unusable": 0,
+      "usable": 3
+    },
+    {
+      "activation_expected": [
+        "stock-analyzer"
+      ],
+      "activation_score": 1.0,
+      "activation_successes": 2,
+      "activation_usable": 2,
+      "attempts": [
+        {
+          "activated": [
+            "stock-analyzer"
+          ],
+          "activation_passed": true,
+          "assert_evidence": "",
+          "assert_passed": true,
+          "attempt": 1,
+          "autorater_passed": true,
+          "autorater_reasoning": "The agent explicitly states that Ichimoku is not implemented by the skill and provides no fabricated Ichimoku values. It reports RSI and Bollinger results while clearly identifying them as mock placeholders rather than real MSFT data.",
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 28.516462386993226,
+          "judge_seconds": 12.123897180019412,
+          "outcome": "pass",
+          "passed": true,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": 29238,
+            "cache_read_tokens": 104469,
+            "input_tokens": 10,
+            "output_tokens": 1626,
+            "total_tokens": 135343
+          }
+        },
+        {
+          "activated": [
+            "stock-analyzer"
+          ],
+          "activation_passed": true,
+          "assert_evidence": "",
+          "assert_passed": true,
+          "attempt": 2,
+          "autorater_passed": true,
+          "autorater_reasoning": "The agent explicitly states that the skill does not implement Ichimoku and provides no fabricated Ichimoku values. It reports RSI and Bollinger results, clearly labeling them as mock data.",
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 25.235808757977793,
+          "judge_seconds": 11.714243060996523,
+          "outcome": "pass",
+          "passed": true,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": 21702,
+            "cache_read_tokens": 110721,
+            "input_tokens": 10,
+            "output_tokens": 1494,
+            "total_tokens": 133927
+          }
+        },
+        {
+          "activated": null,
+          "activation_passed": null,
+          "assert_evidence": "timeout",
+          "assert_passed": null,
+          "attempt": 3,
+          "autorater_passed": null,
+          "autorater_reasoning": null,
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 180.03883178101387,
+          "judge_seconds": null,
+          "outcome": "timeout",
+          "passed": false,
+          "retries": 0,
+          "usage": null
+        }
+      ],
+      "pass_at_k": 1.0,
+      "pass_hat_k": 1.0,
+      "score": 1.0,
+      "successes": 2,
+      "task_id": "task-002",
+      "task_name": "Reports an unsupported indicator instead of inventing one",
+      "unusable": 1,
+      "usable": 2
+    },
+    {
+      "activation_expected": [],
+      "activation_score": 1.0,
+      "activation_successes": 2,
+      "activation_usable": 2,
+      "attempts": [
+        {
+          "activated": [],
+          "activation_passed": true,
+          "assert_evidence": null,
+          "assert_passed": null,
+          "attempt": 1,
+          "autorater_passed": null,
+          "autorater_reasoning": null,
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 4.012080340995453,
+          "judge_seconds": null,
+          "outcome": "not_checked",
+          "passed": false,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": 6622,
+            "cache_read_tokens": 10010,
+            "input_tokens": 2,
+            "output_tokens": 33,
+            "total_tokens": 16667
+          }
+        },
+        {
+          "activated": [],
+          "activation_passed": true,
+          "assert_evidence": null,
+          "assert_passed": null,
+          "attempt": 2,
+          "autorater_passed": null,
+          "autorater_reasoning": null,
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 4.96971354901325,
+          "judge_seconds": null,
+          "outcome": "not_checked",
+          "passed": false,
+          "retries": 0,
+          "usage": {
+            "cache_creation_tokens": 6617,
+            "cache_read_tokens": 10010,
+            "input_tokens": 2,
+            "output_tokens": 35,
+            "total_tokens": 16664
+          }
+        },
+        {
+          "activated": null,
+          "activation_passed": null,
+          "assert_evidence": "timeout",
+          "assert_passed": null,
+          "attempt": 3,
+          "autorater_passed": null,
+          "autorater_reasoning": null,
+          "cheat_evidence": [],
+          "cheated": false,
+          "duration_seconds": 180.02647106800578,
+          "judge_seconds": null,
+          "outcome": "timeout",
+          "passed": false,
+          "retries": 0,
+          "usage": null
+        }
+      ],
+      "pass_at_k": null,
+      "pass_hat_k": null,
+      "score": null,
+      "successes": 0,
+      "task_id": "task-003",
+      "task_name": "Stays silent on an unrelated request",
+      "unusable": 1,
+      "usable": 0
+    }
+  ]
+}
