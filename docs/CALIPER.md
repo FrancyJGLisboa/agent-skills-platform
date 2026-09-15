@@ -1,7 +1,8 @@
 # Agent-run reliability evidence with Caliper
 
-**Status: pilot.** Two bundled example skills carry a Caliper spec. Runs are manual and
-local; CI only checks that the specs parse.
+**Status: pilot.** Two bundled example skills carry a Caliper spec; the factory emits one
+for every new skill, and `team_marketplace.py reliability` runs it per platform. Agent runs
+happen on the operator's machine; CI only checks that the specs parse.
 
 ## What it adds
 
@@ -97,6 +98,24 @@ tasks:
 Three tasks per skill are enough for the pilot: a happy path, an edge case, and a silence
 probe. Put every mechanically checkable claim in `assert:`; keep `expect:` for what only a
 transcript reveals (did it run the skill's script, did it refuse to invent values).
+
+## Operator flow: one command per skill
+
+The marketplace operator's agent does not type the commands below by hand. It runs:
+
+```bash
+python3 scripts/team_marketplace.py reliability <skill> --department <dept> --marketplace <dir>
+```
+
+which, for every declared platform Caliper can drive and whose CLI is installed, runs the
+spec, binds the run, and certifies what passes (see the
+[team marketplace guide](TEAM_MARKETPLACE.md#agent-run-reliability-evidence-caliper)).
+`check --release --require-reliability` then refuses a release whose `claude-code` or
+`codex` certification carries no `caliper:*` checks. The creator agent's only duty is to
+emit `evals/caliper/<skill>.eval.yaml` in Phase 5 from
+`references/templates/caliper-eval-template.yaml`.
+
+The rest of this page is the manual path, useful for iterating on a spec.
 
 ## From a run to marketplace certification
 

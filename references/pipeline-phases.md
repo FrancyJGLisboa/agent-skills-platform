@@ -1219,7 +1219,7 @@ Full skill definition, scripts, and references are in the SKILL.md file and acco
 - `scripts/` — Executable code (`run_pipeline.py` orchestrator for multi-script skills, `run_evals.py` eval runner)
 - `references/` — Detailed documentation
 - `assets/` — Templates, configs
-- `evals/` — Bundled eval spec: binary checks + golden cases
+- `evals/` — Bundled eval spec: binary checks + golden cases; `evals/caliper/` holds the agent-run (Caliper) spec
 - `install.sh` — Cross-platform installer
 ```
 
@@ -1438,6 +1438,14 @@ regression test:
    so `run_evals.py --rollout` can execute the skill end-to-end on each golden
    input and score the real output (post-delivery; not a gate). Omit `run` for
    interactive/branching skills.
+5. Write `evals/caliper/<skill-name>.eval.yaml` from
+   `references/templates/caliper-eval-template.yaml`: three tasks (happy path, edge
+   case, silence probe) whose `assert:` blocks mirror the criteria above and whose
+   `activates:` names the skill. This is the agent-run counterpart of the file-level
+   spec: the marketplace operator's agent runs it inside a real agent per declared
+   platform (`team_marketplace.py reliability`) and certifies what passes. Never run
+   it at delivery; only validate the syntax when `caliper` is installed
+   (`caliper validate <spec>`). See `docs/CALIPER.md`.
 
 See `phase2-eval-assessment.md` for the full format, criteria rules, the rollout
 `run` field, and the `autoresearch-universal` handoff (its rule 18 consumes this
@@ -1737,6 +1745,7 @@ primary handoff.
 | 4 | `references/*.md` | Detailed documentation, self-contained |
 | 5 | `assets/*.json` | Real values, validated JSON |
 | 5.5 | `evals/*.eval.md` + `scripts/run_evals.py` | Bundled loss function; skip if `--no-eval` |
+| 5.6 | `evals/caliper/<name>.eval.yaml` | Agent-run reliability spec from `references/templates/caliper-eval-template.yaml`; skip if `--no-eval` |
 | 6 | `install.sh` | Cross-platform installer, `chmod +x` |
 | 6.5 | `.claude-plugin/*.json` | Plugin manifests from `scripts/claude-plugin-template/`; names match SKILL.md |
 | 6.6 | `scripts/evolve.py` + maintenance modules + `success_ledger.py` | Self-maintenance plus private local lifecycle measurement |
@@ -1778,6 +1787,7 @@ primary handoff.
 - [ ] Assets created with valid JSON and real values
 - [ ] Eval spec emitted (`evals/<name>.eval.md` + `scripts/run_evals.py`) unless `--no-eval`
 - [ ] Eval spec validates (`python3 scripts/run_evals.py --validate` → VALID)
+- [ ] Agent-run spec emitted (`evals/caliper/<name>.eval.yaml`: happy path, edge case, silence probe) unless `--no-eval`
 - [ ] At least one golden case marked `"split": "test"` (holdout — skipped by default, scored only with `--include-holdout`, never fed to an optimization loop)
 - [ ] `install.sh` generated with cross-platform support
 - [ ] `.claude-plugin/plugin.json` + `marketplace.json` generated (valid JSON, `name` fields match SKILL.md)

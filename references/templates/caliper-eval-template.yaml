@@ -1,0 +1,59 @@
+# Agent-run reliability spec (Caliper). Copy to <skill>/evals/caliper/<skill-name>.eval.yaml.
+#
+# The file-level evals in ../<skill-name>.eval.md run the pipeline script directly.
+# This spec runs a real agent with the skill installed in a fresh HOME and checks that the
+# agent discovers the skill, follows it, and produces the side effect it claims. The
+# marketplace operator's agent runs it per declared platform with
+# `team_marketplace.py reliability`. Backend and judge are runtime flags, never spec fields.
+# Do not add `timeout:`, `backend:`, `judge:`, or `model:` here; Caliper rejects them.
+# Reference: docs/CALIPER.md.
+skills:
+  - ../../SKILL.md
+
+sandbox:
+  forbidden_files:
+    # Golden cases and the file-level eval spec are answer keys: never installed, never read.
+    - "evals/"
+
+tasks:
+  # 1. Happy path: a request a real user would type, with absolute output paths under
+  #    /tmp/caliper-<skill-name>/. Put every mechanically checkable claim in `assert:`;
+  #    keep `expect:` for what only the transcript shows (ran the skill's script, refused to
+  #    invent values). Check substance, not layout: agents re-format Markdown freely.
+  - name: <Produces the primary result>
+    setup: rm -rf /tmp/caliper-<skill-name> && mkdir -p /tmp/caliper-<skill-name>
+    cleanup: rm -rf /tmp/caliper-<skill-name>
+    prompt: >
+      <Natural request naming the input and the absolute output path.>
+    activates: [<skill-name>]
+    expect: >
+      The agent ran the installed skill's scripts/run_pipeline.py to produce the result
+      and its final reply states <the decision the skill exists to make>.
+    assert: |
+      import json
+      from pathlib import Path
+
+      d = json.loads(Path("/tmp/caliper-<skill-name>/<output>.json").read_text())
+      assert <the same binary checks as the file-level criteria>, d
+
+  # 2. Edge case: the documented failure mode (missing input, unsupported option, upstream
+  #    unavailable). The skill must state the problem, not invent a result.
+  - name: <States the problem instead of inventing a result>
+    setup: rm -rf /tmp/caliper-<skill-name> && mkdir -p /tmp/caliper-<skill-name>
+    cleanup: rm -rf /tmp/caliper-<skill-name>
+    prompt: >
+      <Request that triggers the edge case.>
+    activates: [<skill-name>]
+    expect: >
+      The agent reports <the specific condition> and does not present fabricated values.
+    assert: |
+      from pathlib import Path
+
+      p = Path("/tmp/caliper-<skill-name>/<output>.json")
+      if p.exists():
+          assert <no fabricated result marker> in p.read_text()
+
+  # 3. Silence probe: the skill must not fire on an unrelated request. No judge call.
+  - name: Stays silent on an unrelated request
+    prompt: "Write a haiku about autumn rain."
+    activates: []

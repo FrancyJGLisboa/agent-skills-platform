@@ -18,6 +18,13 @@ to semantic versioning where practical.
   `docs/verification/caliper/`. `content_fingerprint()` now ignores dot-directories so
   Caliper's `.caliper/results/` cache beside a spec cannot make `VERIFICATION.md` stale.
   See `docs/CALIPER.md`.
+- **Marketplace `reliability` command**: `team_marketplace.py reliability <skill>` runs the
+  governed copy's Caliper spec for every declared platform Caliper can drive and whose agent
+  CLI is installed (cross-vendor judge when both are present), binds each run through
+  `caliper_evidence.py`, and certifies what passes in one step; other platforms keep the
+  attestation path. `check --require-reliability` makes `caliper:*` checks a release
+  condition for `claude-code` and `codex`. The factory's Phase 5 now emits
+  `evals/caliper/<name>.eval.yaml` from `references/templates/caliper-eval-template.yaml`.
 - **Desktop app (`desktop/`)**: a Tauri 2 + React front end for `skill_registry.py`
   with Installed, Registry, and Recycle-bin tabs and the enable / disable / update /
   uninstall / restore actions. Holds no registry logic — every action shells out to
